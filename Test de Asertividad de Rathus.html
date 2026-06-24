@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test de Asertividad de Rathus</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0ebe5; color: #333; min-height: 100vh; }
+.header-bar { background: #5d3a2a; color: white; text-align: center; padding: 22px 20px; font-size: 1.5rem; font-weight: 700; letter-spacing: 0.5px; }
+.container { max-width: 720px; margin: 30px auto; padding: 0 16px 60px; }
+.card { background: white; border-radius: 10px; padding: 32px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.card h2 { color: #5d3a2a; font-size: 1.1rem; margin-bottom: 14px; font-weight: 700; }
+.card p { color: #555; line-height: 1.7; margin-bottom: 10px; }
+.card ul { margin: 8px 0 10px 20px; color: #555; line-height: 1.9; }
+.intro-title { color: #5d3a2a; font-size: 1.6rem; margin-bottom: 16px; font-weight: 800; }
+.scale-box { background: #faf6f3; border-left: 4px solid #8d6e63; border-radius: 6px; padding: 16px 20px; margin: 14px 0; }
+.scale-box p { margin-bottom: 4px; font-size: 0.93rem; color: #444; }
+.scale-box strong { color: #5d3a2a; }
+.divider { border: none; border-top: 2px solid #f0ebe5; margin: 22px 0; }
+.question-card { background: white; border-radius: 10px; padding: 22px 26px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); border-left: 4px solid #c8a99a; }
+.question-card.unanswered { border-left-color: #e57373; }
+.q-text { font-size: 0.96rem; color: #333; margin-bottom: 18px; line-height: 1.6; font-weight: 500; }
+.q-num { color: #8d6e63; font-weight: 700; margin-right: 6px; }
+.likert-wrap { display: flex; align-items: flex-end; gap: 6px; width: 100%; }
+.likert-label { font-size: 0.72rem; color: #999; text-align: center; flex: 0 0 80px; line-height: 1.3; padding-bottom: 4px; }
+.likert-options { display: flex; flex: 1; justify-content: space-around; align-items: flex-end; padding-bottom: 2px; }
+.likert-option { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+.likert-option span { font-size: 0.77rem; color: #aaa; font-weight: 600; }
+.likert-option input[type="radio"] { display: none; }
+.likert-circle { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #c8a99a; background: white; transition: all 0.2s; }
+.likert-option input[type="radio"]:checked + .likert-circle { background: #5d3a2a; border-color: #5d3a2a; box-shadow: 0 0 0 3px rgba(93,58,42,0.18); }
+.likert-option:hover .likert-circle { border-color: #8d6e63; background: #faf0eb; }
+.progress-label { font-size: 0.82rem; color: #888; margin-bottom: 7px; text-align: right; }
+.progress-bar-wrap { background: #e0d5cc; border-radius: 10px; height: 8px; margin-bottom: 22px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: #5d3a2a; border-radius: 10px; transition: width 0.4s ease; }
+.btn { display: inline-block; padding: 13px 30px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s, transform 0.1s; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: #5d3a2a; color: white; }
+.btn-primary:hover { background: #7a4e3a; }
+.btn-secondary { background: #e0d5cc; color: #5d3a2a; }
+.btn-secondary:hover { background: #cfc3b8; }
+.btn-row { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; flex-wrap: wrap; gap: 12px; }
+.warning { background: #fff3cd; border: 1px solid #ffc107; color: #856404; border-radius: 8px; padding: 11px 16px; font-size: 0.87rem; margin-top: 14px; display: none; }
+.result-card { background: white; border-radius: 14px; padding: 40px 32px; box-shadow: 0 4px 18px rgba(0,0,0,0.1); text-align: center; }
+.result-score-label { font-size: 0.88rem; color: #bbb; margin-bottom: 4px; }
+.result-score { font-size: 3.5rem; font-weight: 800; color: #5d3a2a; margin: 6px 0 4px; line-height: 1; }
+.result-score-range { font-size: 0.8rem; color: #ccc; margin-bottom: 22px; }
+.result-badge { display: inline-block; padding: 11px 30px; border-radius: 30px; font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 28px; }
+.badge-pasivo { background: #7b8fa1; }
+.badge-t-pasiva { background: #a0a878; }
+.badge-t-asertiva { background: #6a9e6f; }
+.badge-asertivo { background: #4a7c59; }
+.badge-agresivo { background: #b5603a; }
+.result-text { font-size: 0.96rem; color: #444; line-height: 1.8; text-align: left; background: #faf6f3; border-radius: 10px; padding: 22px 24px; margin-bottom: 16px; border-left: 4px solid #8d6e63; }
+.result-range-note { font-size: 0.8rem; color: #bbb; margin-bottom: 28px; }
+.page { display: none; }
+.page.active { display: block; }
+@media (max-width: 520px) {
+  .likert-label { flex: 0 0 58px; font-size: 0.65rem; }
+  .likert-circle { width: 22px; height: 22px; }
+  .card, .question-card { padding: 16px 12px; }
+  .result-card { padding: 28px 16px; }
+  .header-bar { font-size: 1.1rem; padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="header-bar">Test de Asertividad de Rathus</div>
+<div class="container">
+  <div class="page active" id="page-intro">
+    <div class="card">
+      <h1 class="intro-title">¿Qué tan asertivo/a eres?</h1>
+      <p>La asertividad suele confundirse con "decir lo que uno piensa" sin más.</p>
+      <p>Sin embargo, la verdadera clave está en el equilibrio: <strong>defender tu postura sin pasar por encima de nadie</strong>, gestionando incluso esas conversaciones incómodas que preferiríamos evitar.</p>
+      <p>Este ejercicio utiliza el <strong>Test de Rathus</strong>, una herramienta clásica para analizar cómo te posicionas ante los demás y bajo qué patrones actúas cuando hay un conflicto de intereses.</p>
+      <hr class="divider">
+      <h2>¿Qué vas a descubrir?</h2>
+      <p>Más que una puntuación, este test te ofrece un mapa de tu comunicación actual para entender:</p>
+      <ul>
+        <li>Cómo manejas la confrontación y el desacuerdo.</li>
+        <li>Si tus decisiones nacen de la convicción o de la necesidad de agradar.</li>
+        <li>En qué momentos tiendes a ceder, a evitar o a imponer tu criterio.</li>
+      </ul>
+      <hr class="divider">
+      <h2>Un par de consejos antes de empezar</h2>
+      <p><strong>1. Olvídate del "debería":</strong> No hay respuestas correctas. Responde basándote en cómo actúas hoy, no en cómo te gustaría actuar.</p>
+      <p><strong>2. Sé honesto/a contigo mismo/a:</strong> El valor del test no está en el resultado final, sino en la honestidad con la que enfrentes cada pregunta.</p>
+      <div class="btn-row" style="justify-content:flex-end; margin-top:28px;">
+        <button class="btn btn-primary" onclick="goToTest()">Comenzar el test →</button>
+      </div>
+    </div>
+  </div>
+  <div class="page" id="page-test">
+    <div class="card">
+      <h2>Indica cómo te sientes identificado/a con cada afirmación</h2>
+      <div class="scale-box">
+        <p><strong>6</strong> — Muy característico/a de mí (siempre)</p>
+        <p><strong>5</strong> — Bastante característico/a</p>
+        <p><strong>4</strong> — Algo característico/a</p>
+        <p><strong>3</strong> — Algo insignificante en mí</p>
+        <p><strong>2</strong> — Bastante insignificante</p>
+        <p><strong>1</strong> — Muy poco característico/a de mí (nunca)</p>
+      </div>
+    </div>
+    <div class="progress-label" id="progress-label">0 de 24 respondidas</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+    <div id="questions-container"></div>
+    <div class="warning" id="warn-answers">Por favor, responde todas las preguntas antes de ver tu resultado.</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToIntro()">← Atrás</button>
+      <button class="btn btn-primary" onclick="calcularResultado()">Ver mi resultado →</button>
+    </div>
+  </div>
+  <div class="page" id="page-result">
+    <div class="result-card">
+      <div class="result-score-label">Tu puntuación</div>
+      <div class="result-score" id="res-score"></div>
+      <div class="result-score-range">Escala: -72 a +72</div>
+      <div class="result-badge" id="res-badge"></div>
+      <div class="result-text" id="res-text"></div>
+      <div class="result-range-note" id="res-range"></div>
+      <button class="btn btn-secondary" onclick="reiniciar()">↩ Realizar de nuevo</button>
+    </div>
+  </div>
+</div>
+<script>
+const preguntas = [
+  { num:1,  texto:"La mayoría de la gente parece ser más agresiva que yo.", inv:true },
+  { num:2,  texto:"He dudado en solicitar citas o quedar con alguien por timidez.", inv:true },
+  { num:3,  texto:"Cuando la comida que me sirven en un restaurante no está hecha a mi gusto, me quejo al camarero/a.", inv:false },
+  { num:4,  texto:"Me esfuerzo por evitar herir los sentimientos de los demás, incluso cuando siento que me han ofendido.", inv:true },
+  { num:5,  texto:'Si un vendedor/a se ha molestado mucho conmigo mostrándome un producto que no me gusta, me cuesta mucho decir "no".', inv:true },
+  { num:6,  texto:"Cuando me piden que haga algo, insisto en saber por qué.", inv:false },
+  { num:7,  texto:"Hay veces que busco una buena discusión.", inv:false },
+  { num:8,  texto:"Tiendo a ser tan capaz como la mayoría de la gente en mi trabajo.", inv:false },
+  { num:9,  texto:"Para ser sincero/a, la gente a menudo se aprovecha de mí.", inv:true },
+  { num:10, texto:"Disfruto iniciando conversación con conocidos/as y extraños/as.", inv:false },
+  { num:11, texto:"A menudo no sé qué decir a personas atractivas de otro género.", inv:true },
+  { num:12, texto:"Me corto a la hora de llamar por teléfono a instituciones o empresas.", inv:true },
+  { num:13, texto:"Prefiero pedir un trabajo por carta que pasar por una entrevista personal.", inv:true },
+  { num:14, texto:"Me resulta embarazoso/a devolver un artículo comprado.", inv:true },
+  { num:15, texto:"Si un/a pariente cercano/a me molesta, prefiero ocultar mis sentimientos antes que expresar mi enfado.", inv:true },
+  { num:16, texto:"He evitado hacer preguntas por miedo a parecer tonto/a.", inv:true },
+  { num:17, texto:"Durante una discusión, a veces me da miedo alterarme tanto que me pongo a temblar.", inv:true },
+  { num:18, texto:"Si un/a conferenciante prestigioso/a dice algo que creo que es incorrecto, doy mi opinión en público.", inv:false },
+  { num:19, texto:"Evito discutir sobre precios con dependientes/as o cobradores/as.", inv:true },
+  { num:20, texto:"Cuando he hecho algo importante, me encargo de que los demás se enteren.", inv:false },
+  { num:21, texto:"Soy abierto/a y franco/a en cuanto a mis sentimientos.", inv:false },
+  { num:22, texto:"Si alguien me pisa en el cine o en un grupo, se lo hago saber.", inv:false },
+  { num:23, texto:'Me cuesta mucho decir "no" a un/a amigo/a que me pide dinero.', inv:true },
+  { num:24, texto:"Cuando alguien me hace un cumplido, no sé qué decir.", inv:true }
+];
+function uiToRathus(v){return{1:-3,2:-2,3:-1,4:1,5:2,6:3}[v];}
+const perfiles=[
+  {min:-72,max:-25,nombre:"Perfil Pasivo/a",cls:"badge-pasivo",texto:"Tu estilo de comunicación tiende a priorizar las necesidades de los demás por encima de las tuyas. Esto puede generarte estrés acumulado, dificultad para poner límites y sensación de que los demás se aprovechan de ti. En contextos de liderazgo, puede traducirse en dificultad para dar feedback directo, delegar con claridad o sostener decisiones bajo presión.",rango:"Rango de puntuación: -72 a -25"},
+  {min:-24,max:-1,nombre:"Tendencia Pasiva",cls:"badge-t-pasiva",texto:"Eres capaz de expresarte en entornos de confianza, pero en situaciones de conflicto o presión tiendes a ceder o a evitar el enfrentamiento. Tu comunicación es funcional en contextos cómodos, pero puede volverse poco efectiva cuando más se necesita firmeza. Hay margen claro de crecimiento en la defensa de tu criterio.",rango:"Rango de puntuación: -24 a -1"},
+  {min:0,max:24,nombre:"Tendencia Asertiva",cls:"badge-t-asertiva",texto:"Te mueves en un equilibrio razonable entre expresar lo que piensas y respetar a los demás. No siempre llegas a defender tu postura con toda la firmeza que la situación requiere, pero tu comunicación suele ser constructiva. Con práctica, puedes consolidar este estilo y aplicarlo con mayor consistencia en situaciones de mayor presión.",rango:"Rango de puntuación: 0 a +24"},
+  {min:25,max:54,nombre:"Perfil Asertivo/a",cls:"badge-asertivo",texto:"Tu estilo de comunicación refleja un equilibrio sólido entre firmeza y respeto. Eres capaz de defender tu postura, poner límites y expresar tu criterio sin necesidad de imponerte. Es el perfil más funcional en contextos de liderazgo: genera confianza, facilita el feedback y sostiene relaciones profesionales saludables.",rango:"Rango de puntuación: +25 a +54"},
+  {min:55,max:72,nombre:"Asertivo/a con tendencia agresiva",cls:"badge-agresivo",texto:"Tu nivel de asertividad es muy alto, lo que indica una gran capacidad para defender tu postura y tomar la iniciativa. Sin embargo, en puntuaciones extremas existe el riesgo de que tu firmeza sea percibida por los demás como imposición o falta de empatía. Vale la pena revisar si en algunos contextos tu forma de comunicarte deja espacio para el criterio ajeno.",rango:"Rango de puntuación: +55 a +72"}
+];
+function renderPreguntas(){
+  const c=document.getElementById('questions-container');c.innerHTML='';
+  preguntas.forEach(p=>{
+    const d=document.createElement('div');d.className='question-card';d.id='q-'+p.num;
+    d.innerHTML='<div class="q-text"><span class="q-num">'+p.num+'.</span> '+p.texto+'</div>'+
+      '<div class="likert-wrap"><div class="likert-label">Muy poco característico/a de mí (nunca)</div>'+
+      '<div class="likert-options">'+
+      [1,2,3,4,5,6].map(v=>'<label class="likert-option"><input type="radio" name="q'+p.num+'" value="'+v+'"><div class="likert-circle"></div><span>'+v+'</span></label>').join('')+
+      '</div><div class="likert-label">Muy característico/a de mí (siempre)</div></div>';
+    c.appendChild(d);
+  });
+  c.querySelectorAll('input[type="radio"]').forEach(r=>r.addEventListener('change',actualizarProgreso));
+}
+function actualizarProgreso(){
+  let n=0;preguntas.forEach(p=>{if(document.querySelector('input[name="q'+p.num+'"]:checked'))n++;});
+  document.getElementById('progress-fill').style.width=Math.round(n/preguntas.length*100)+'%';
+  document.getElementById('progress-label').textContent=n+' de '+preguntas.length+' respondidas';
+}
+function goToIntro(){document.getElementById('page-test').classList.remove('active');document.getElementById('page-intro').classList.add('active');window.scrollTo(0,0);}
+function goToTest(){document.getElementById('page-intro').classList.remove('active');document.getElementById('page-test').classList.add('active');window.scrollTo(0,0);}
+function calcularResultado(){
+  let todas=true,primera=null;
+  preguntas.forEach(p=>{
+    const qCard=document.getElementById('q-'+p.num);
+    if(!document.querySelector('input[name="q'+p.num+'"]:checked')){todas=false;qCard.classList.add('unanswered');if(!primera)primera=qCard;}
+    else{qCard.classList.remove('unanswered');}
+  });
+  if(!todas){document.getElementById('warn-answers').style.display='block';if(primera)primera.scrollIntoView({behavior:'smooth',block:'center'});return;}
+  document.getElementById('warn-answers').style.display='none';
+  let total=0;
+  preguntas.forEach(p=>{let s=uiToRathus(parseInt(document.querySelector('input[name="q'+p.num+'"]:checked').value));if(p.inv)s=-s;total+=s;});
+  const perfil=perfiles.find(p=>total>=p.min&&total<=p.max);
+  document.getElementById('res-score').textContent=(total>=0?'+':'')+total;
+  const badge=document.getElementById('res-badge');badge.textContent=perfil.nombre;badge.className='result-badge '+perfil.cls;
+  document.getElementById('res-text').textContent=perfil.texto;
+  document.getElementById('res-range').textContent=perfil.rango;
+  document.getElementById('page-test').classList.remove('active');document.getElementById('page-result').classList.add('active');window.scrollTo(0,0);
+}
+function reiniciar(){
+  preguntas.forEach(p=>{const ch=document.querySelector('input[name="q'+p.num+'"]:checked');if(ch)ch.checked=false;document.getElementById('q-'+p.num).classList.remove('unanswered');});
+  actualizarProgreso();document.getElementById('page-result').classList.remove('active');document.getElementById('page-intro').classList.add('active');window.scrollTo(0,0);
+}
+renderPreguntas();actualizarProgreso();
+</script>
+</body>
+</html>
