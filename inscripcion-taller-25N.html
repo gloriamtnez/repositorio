@@ -180,10 +180,10 @@
       <label>Duración aproximada <span class="req">*</span></label>
       <select name="duracion" required>
         <option value="">Selecciona...</option>
-        <option value="30 minutos">30 minutos</option>
         <option value="45 minutos">45 minutos</option>
         <option value="60 minutos">60 minutos</option>
         <option value="90 minutos">90 minutos</option>
+        <option value="Más de 90 minutos">Más de 90 minutos</option>
         <option value="Otra duración">Otra duración</option>
       </select>
 
@@ -244,6 +244,21 @@
     e.preventDefault();
     msg.className = '';
     msg.style.display = 'none';
+
+    // Validación explícita: algunos navegadores integrados (WhatsApp, Instagram, etc.)
+    // no bloquean el envío aunque falten campos obligatorios, así que lo comprobamos a mano.
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      msg.textContent = 'Faltan campos obligatorios por rellenar. Revisa el formulario marcado en rojo.';
+      msg.className = 'error';
+      return;
+    }
+    const colaboracionMarcada = form.querySelectorAll('input[name="forma_colaboracion"]:checked').length > 0;
+    if (!colaboracionMarcada) {
+      msg.textContent = 'Selecciona al menos una forma de colaboración.';
+      msg.className = 'error';
+      return;
+    }
 
     if (APPS_SCRIPT_URL.includes('PEGA_AQUI')) {
       msg.textContent = 'Formulario listo pero aún no conectado a Google Sheets. Sigue las instrucciones para desplegar el Apps Script y pegar la URL en este archivo.';
