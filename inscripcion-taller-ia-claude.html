@@ -225,8 +225,8 @@
       <label>Cuéntanos brevemente qué sabes hacer actualmente con Claude o con otras IA <span class="req">*</span></label>
       <textarea name="conocimientos" required></textarea>
 
-      <label>¿Qué tarea real de tu empresa o trabajo te gustaría aprender a resolver con Claude?
-        <span class="hint">Nos ayuda a diseñar un taller realmente práctico.</span>
+      <label>¿Para qué te gustaría usar la IA?
+        <span class="hint">Sé lo más específica posible: nos ayuda a adaptar al máximo el taller a las asistentes.</span>
       </label>
       <textarea name="tarea_real"></textarea>
 
@@ -268,7 +268,7 @@
 <script>
   // Sustituye esta URL por la del Web App de Google Apps Script una vez desplegado
   // (ver instrucciones adjuntas: apps-script-taller-ia.gs)
-  const APPS_SCRIPT_URL = "PEGA_AQUI_LA_URL_DEL_WEB_APP";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0vCK3LWoupCnrCHZVo6uiiac9WG4NFbsSBzZotmcTp6hhm7-ojUj2T0N4DHtYyA7KVw/exec";
 
   const form = document.getElementById('formTallerIA');
   const msg = document.getElementById('msg');
@@ -278,6 +278,15 @@
     e.preventDefault();
     msg.className = '';
     msg.style.display = 'none';
+
+    // Validación explícita: algunos navegadores integrados (WhatsApp, Instagram, etc.)
+    // no bloquean el envío aunque falten campos obligatorios, así que lo comprobamos a mano.
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      msg.textContent = 'Faltan campos obligatorios por rellenar. Revisa el formulario marcado en rojo.';
+      msg.className = 'error';
+      return;
+    }
 
     if (APPS_SCRIPT_URL.includes('PEGA_AQUI')) {
       msg.textContent = 'Formulario listo pero aún no conectado a Google Sheets. Sigue las instrucciones para desplegar el Apps Script y pegar la URL en este archivo.';
