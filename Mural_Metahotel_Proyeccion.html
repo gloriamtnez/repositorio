@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metahotel · Mural de Sala: Radar Somático y Clima Emocional</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Open Sans (Light 300 / 400 / 600 / 700) y Outfit (la alternativa tipográfica más fiel a Umba Soft) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* Declaración de fuentes oficiales del Manual Metahotel V5 (Pág. 12) */
+    @font-face {
+      font-family: 'Umba Soft';
+      src: local('Umba Soft SC Bold'), local('Umba Soft Bold'), local('UmbaSoft-Bold');
+      font-weight: 700 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Umba Soft SC Thin';
+      src: local('Umba Soft SC Thin'), local('Umba Soft Thin'), local('UmbaSoft-Thin');
+      font-weight: 200 300;
+      font-style: normal;
+    }
+
+    /* Tipografía de texto corrido oficial: Open Sans Light (Pág. 12) */
+    body {
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 300;
+      color: #303038;
+    }
+
+    /* Titulares de marca en Umba Soft Bold con fallback en Outfit */
+    .font-brand-title {
+      font-family: 'Umba Soft', 'Outfit', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .font-brand-sub {
+      font-family: 'Umba Soft SC Thin', 'Outfit', 'Open Sans', sans-serif;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+    }
+
+    .font-brand-body {
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 300;
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["'Open Sans'", 'sans-serif'],
+            display: ["'Umba Soft'", "'Outfit'", 'sans-serif'],
+            mono: ["'JetBrains Mono'", 'monospace']
+          },
+          colors: {
+            brand: {
+              blue: '#0099CD',       /* Pantone 7467u */
+              mint: '#96CCAE',       /* Pantone 7465u */
+              mintDark: '#00B092',
+              dark: '#303038',       /* Black 90% */
+              grey: '#706F6F',       /* Black 70% */
+              light: '#F4F8FA',
+              border: '#CBD5E1'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* CONFIGURACIÓN DE IMPRESIÓN OFICIAL (A1 / A2 / A3 / PLOTTER) */
+    @page {
+      size: A3 landscape;
+      margin: 6mm;
+    }
+
+    @media print {
+      html, body {
+        background: #ffffff !important;
+        color: #303038 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .print-container {
+        border: 1pt solid #706F6F !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        height: 98vh !important;
+        max-height: 98vh !important;
+        margin: 0 auto !important;
+        padding: 5mm 7mm !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      .sheet-wrapper {
+        padding: 0 !important;
+        background: white !important;
+        height: auto !important;
+      }
+
+      /* El ajuste-a-pantalla (JS) es solo para la vista en pantalla/proyector;
+         al imprimir se anula siempre, para que el PDF no herede ningun scale()
+         ni ancho fijo que haya calculado el navegador */
+      #fit-stage {
+        transform: none !important;
+        width: 100% !important;
+        max-width: none !important;
+      }
+    }
+
+    /* Marcas de corte para guillotina de imprenta */
+    .crop-mark {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: #706F6F;
+      pointer-events: none;
+    }
+    .crop-tl { top: -2px; left: -2px; border-top: 1.5px solid; border-left: 1.5px solid; }
+    .crop-tr { top: -2px; right: -2px; border-top: 1.5px solid; border-right: 1.5px solid; }
+    .crop-bl { bottom: -2px; left: -2px; border-bottom: 1.5px solid; border-left: 1.5px solid; }
+    .crop-br { bottom: -2px; right: -2px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+
+    .touch-target { cursor: crosshair; }
+    .gomet-dot {
+      /* Centra el gomet sobre el punto exacto donde se hizo clic (left/top
+         marcan ese punto; el translate centra el circulo sobre el, no su
+         esquina). Sin "forwards" la animacion revertia este transform al
+         terminar y el gomet quedaba desplazado del punto pulsado. */
+      transform: translate(-50%, -50%);
+      animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes popIn {
+      0% { transform: translate(-50%, -50%) scale(0); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* ============ AJUSTE A PANTALLA / PROYECTOR (SOLO PANTALLA) ============
+       El mural se reescala automaticamente para caber siempre dentro de la
+       ventana del ordenador/proyector, sin recortes ni scroll, sea cual sea
+       la resolucion. La hoja de impresion (PDF) no se ve afectada. */
+    @media screen {
+      html, body { height: 100%; overflow: hidden; }
+      .sheet-wrapper {
+        min-height: 0;
+        max-width: none !important;
+        overflow: hidden;
+        align-items: center;
+        justify-content: center;
+      }
+      #fit-stage {
+        transform-origin: center center;
+        will-change: transform;
+        /* Al triplicar la silueta la columna 2 crece mucho en alto; se
+           ensancha el lienzo (solo pantalla) para que el conjunto vuelva a
+           tener proporción horizontal y el ajuste-a-pantalla use el ancho
+           real disponible en vez de dejar franjas en blanco a los lados. */
+        width: 2300px !important;
+      }
+      /* El alto minimo de 620px esta pensado para el pliego impreso (A3/A2/A1);
+         en pantalla sobra espacio en blanco y hace que el mural "flote" como
+         una hoja vertical dentro del proyector. Al reducirlo aqui (solo
+         pantalla) el conjunto ocupa menos alto y el ajuste-a-pantalla puede
+         aplicar un zoom mayor, haciendo el texto notablemente mas grande sin
+         tocar la maquetacion ni la impresion. */
+      #zona-grid {
+        min-height: 380px !important;
+        gap: 1.5rem !important;
+      }
+
+      /* Silueta corporal (columna 2): el triple de grande en pantalla
+         (protagonismo visual de la zona de gomets). La impresion conserva
+         la silueta a su tamaño original. */
+      #body-image-ref, #body-svg-fallback {
+        max-height: 645px !important;
+      }
+
+      /* Etiquetas de zonas somáticas bajo la silueta: en dos filas de dos
+         para que quepan bien con la letra mayor, sin partir cada etiqueta
+         a la mitad. */
+      #zona2-footer-labels {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        row-gap: 0.35rem !important;
+        column-gap: 1rem !important;
+        text-align: left !important;
+      }
+      #zona2-footer-labels span { font-size: 12.5px !important; }
+
+      /* Mas aire general en el pliego para una composicion mas ordenada */
+      .print-container {
+        padding: 2rem !important;
+      }
+      #mural-header-row {
+        padding-bottom: 1.1rem !important;
+        gap: 1.75rem !important;
+      }
+      #zona-1, #zona-3 { padding: 1.15rem !important; }
+      #zona-2 { padding: 1rem 1.15rem !important; }
+
+      /* Columna 1: el titulo "1. CÓDIGO..." se alinea arriba, a la misma
+         altura que "2. MAPA CORPORAL..." y "3. ACUERDOS...". La nota de
+         pauta de sala se ancla abajo (margin-top:auto en ella) para
+         aprovechar el hueco sobrante en vez de dejarlo repartido o pegado
+         justo debajo de la lista. */
+      #zona-1 {
+        justify-content: flex-start !important;
+      }
+      #zona-1 > div:last-child {
+        margin-top: auto !important;
+      }
+
+      /* ===== ESCALA TIPOGRÁFICA AMPLIADA (SOLO PANTALLA) =====
+         Aplicada a todo el contenido del pliego (cabecera, las 3 zonas de
+         trabajo y el pie), respetando la jerarquia original: los rotulos en
+         mayuscula/negrita (titulos de bloque) suben mas que el texto de
+         apoyo, y este mas que las etiquetas pequeñas. Solo cambia el
+         tamaño de letra: el contenido, el orden y la impresion no se
+         tocan. */
+      .print-container .text-\[8px\]     { font-size: 18px   !important; }
+      .print-container .text-\[8\.5px\]  { font-size: 18.5px !important; }
+      .print-container .text-\[9px\]     { font-size: 19px   !important; }
+      .print-container .text-\[9\.5px\]  { font-size: 19.5px !important; }
+      .print-container .text-\[10px\]    { font-size: 21px   !important; }
+      .print-container .text-\[10\.5px\] { font-size: 21.5px !important; }
+      .print-container .text-\[11px\]    { font-size: 23px   !important; }
+      .print-container .text-xs          { font-size: 23px   !important; }
+      .print-container .text-base,
+      .print-container .text-lg          { font-size: 29px   !important; line-height: 1.15 !important; }
+
+      /* Zona 1 · Leyenda de emociones: mas aire entre filas y cajas mas
+         generosas para acompañar el texto mayor y llenar mejor la columna */
+      #zona-1 .space-y-1\.5 > * + * { margin-top: 0.85rem !important; }
+      #zona-1 .space-y-1\.5 > div   { padding: 0.7rem 0.85rem !important; }
+      #zona-1 .w-3\.5.h-3\.5        { width: 1.05rem !important; height: 1.05rem !important; }
+      #zona-1 .w-9.h-6              { width: 3.1rem !important; height: 2.3rem !important; }
+
+      /* Zona 3 · Cuadrantes A/B/C: mas espacio interior y separacion */
+      #zona-3 > div.flex-1          { gap: 1.15rem !important; }
+      #zona-3 .rounded-lg.p-3       { padding: 1.15rem !important; }
+      #zona-3 .grid.grid-cols-3     { gap: 0.85rem !important; padding: 0.85rem !important; }
+      #zona-3 .grid.grid-cols-4     { gap: 0.6rem !important; }
+      #zona-3 .rounded.p-1          { padding: 0.55rem 0.4rem !important; }
+
+      /* Cabecera institucional (EQUIPO/CLIENTE, FECHA, FACILITADOR):
+         separacion mas generosa para el texto mayor */
+      #mural-header-row .gap-4      { gap: 1.1rem !important; }
+      #mural-header-row .pr-3\.5,
+      #mural-header-row .pl-3       { padding-left: 1rem !important; padding-right: 1rem !important; }
+      #mural-header-row .w-28       { width: 8rem  !important; }
+      #mural-header-row .w-20       { width: 6rem  !important; }
+      #mural-header-row .w-24       { width: 7rem  !important; }
+
+      /* Pie de columna 3 y pie de pagina general */
+      #zona-3 > .pt-2, #pie-pliego { padding-top: 0.85rem !important; }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-100 text-brand-dark font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- BARRA DE CONTROL SUPERIOR (SOLO PANTALLA) -->
+  <header class="no-print sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm px-4 sm:px-6 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Encabezado con logotipo corporativo -->
+      <div class="flex items-center space-x-3">
+        <div id="toolbar-logo-slot" class="h-9 flex items-center">
+          <!-- Logo vectorial exacto fiel al archivo MH Color Hor sf_HORIZONTAL.png -->
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZgAAACECAYAAACtWD0BAAAbuElEQVR42u2dbXBj11nH//Lau82SxjJtKG6SruJQ6NB6rNbL6rYptVJsyAzTWRdqh+FDV8sHeYYZWJkZsAcGVsurTWfqm+kHWE2ZaPkWuxAv/dKybiOXppXSuJXHSZnOEFcLBacvxHJCF5ImFR/03N27iqR7rnTfpPv/zWiSla/uPfec5zz/85zXSK1WQ9DRtEQUQBJAvOFPm8ViqYyQIfkxCyBm+roKoBDG/CCEBJNI0AVGnGkFwHCLSy4Vi6VsiMQlBqDcJj/OF4ulfJDSvJjJxAEUmqT5OoDZNV0vu/jsFAC9ybN3ASTXdL3qwbtvAjjlYZZvr+l60uH3mAWQb2N3XnJ+TdfzPthxVMpyqsmfH13T9Qwl5XYGeiCNKQujDluh9mJ+ZFqk+ZQ4LbccQqyFuADAhESBbjPrsbgAwNRiJpP0qAz9QPfRjqda/O2CC3lOgfGAqMXfh1mMb3CcQSPWLr2LmYxboqhb2EeM5tKT+FXnrew0xaLpPYEhvY+VI89K94OT0UsSwNku00WIYU9WPQcAcE6iZkKBIR5i1UU0DOe7PfIOCB8hqtELoxgKDAkw55zqw17MZLJQG/eIMtuJYjSs2vWcYY5RYIi3ldPJqMPqeTEblXyCJUQcFo1h6U4jFBgSME5J9NENOjjxww2qAUrLkYcNpBisx/IYxVBgiE/E7VbOTgdKFQf2u4mweoUra7pecPieWS8du4W4eOnAO3nWBKcs1xlkFhCXidq83hjwn+3gWfkezSPHF0Y6jSyGtVWWi5lMAa3XjZjvHQniO8vMxlSHP0+hvriYEQwhLtJJNHLWbgvQxsB+txEWCQ+z6Ly7lVOWKTAkoAJjKxqxObDfbYRFwkO2y9+nwp6BFBgSVOwM+OtdtDRjzGrSpNGSRPdb/GScXkBMgSHkdqa6rKAxBUdwtotnUGCIG9ELpNEzS4EhJJgMw7qrLM9sIg5HLzHFhpHKrLpsmPOSAkPcrKhxJyIg2Sq+2f2z6L4bY4olRToQhetQG/c7FeYpy5ymTNwk6tB99MVMpmA+u6XLgf2gEetwgWkZQMHtM21C1iiKQq1bK7+m6/nFTEaH9fhfBiGdskyBIa46TsVuBqsKekoqqdkJq1Rs5UjLzUPPVFq5AC52+Nvr4DiSk6QU7Uo3hAbABYtrzy5mMrE1Xa9QYJrw4NWnokMRzA5GasmhSC02GEF8KFIbPhHB7tBArXosUisfi6Dw6ZnkJu2T2BQYw7FbdVVdXMxk8mu6XrExsH8FwDkPIy1fxGkxk0m6sHI/rKhExVdMUaOuIDDGfTNhy8y2YzDve+KrsTNXv5JH/cjix6SyTpkUfkL+fQHAEwtbT1Z++wtPpmijxKbjVrWZfMN/rSIj1QrNCIAYZ76csmGHkKjkqoqNh3HKckuBec8/fjUjrctzNroiTgF47He++MXyYuELcZps6FGxgbJU0ksK107J9iMqTiAjrcxtCgxxsKFzvUm0qNLgCeWU5aYCM/YPxTyANXTexz0BoPD721uMZogVVWkJZlEfT7AUGYVrttd0PW8jDVEWQ+ijl7iibemNX6zp+qai7WZDLzD3fqaYh1q/tYpiP7b0pWsUmfCiUmGrNluQdluiZYciLdLfZBSuOWoTrag0aEI3Zfk2gbl7o6Q7JC63Kf4f/ss1VmDSirKpJViAWn92Oy41zNapMouJRfQSVfR7m22mhOsOCln/CczweikJtdkQnUQyeZpxKLscOo0+Oj13ZFe62mBTYHp5seUuZ5B5Er20FRERnisK9zgbpl2WzRFM1sXnTPzxlz+foh2HiqjdCMZUUTu1xYzV/YMqEgAe6vCTpKl5IjC7CmulVBvS2bBk7CAAnHz86fhQRLkVdxX1VallMe4U1Gb1ZBnJhAqlVlqzLoc1XddlyuiEjec92k1L3ufFllVGIb5F2imoTWaKygxGJ5hdzGSiYdiBYdDULWHF0dLP3/+3Mw/c8zDqM8yMllf2/D8XoqbvWnHq4lOfi1968OEyzZoCY9hUm7+lAHxD8VlHbVqFqvYWZZExemnnv9D9vncGw2Lfer9nrtFFZhVmH+U+8J4vzTxwz1JDq3ICwGOP/XJyFmrrGGZpz6FBxWGX20Q2ZQCPKj4r1ao1aKOVGGORhS56SdqMkv0Qtr4QmLaZ/Jv3vLX8s28d/kibS6Y+PZMErOeCsxKHh7gD98jCesB/W9YhtENljQJtM3ykfHz2qVa7hPeVwJx8/GnLlubZd943qajIm6zExIkIxhR9tHMCR4pOokKBIQ3RSwzOL8lgFNMkgrFsad47fPJOhXsNv+uuu6I0XaISFQtVqwskOnm0hbhkFHeorSpcQ4Fh9OI1U/0+ZXkQCoOgL954BT958gRNkjiNijhgTdczXbb2yrDefZmNo/BEL9EARQ/ZgIidOxHMjUfOWLbuyi+8qHSz/ZdfPkPzJTa2w6gEKNkTLLnQMAuHzhJyIi39vMuyMU15t10FW/vX66+9/767B+8Yan18TPnghederdXefSxC6yWBowCFA718XJswtZjJ1By+5zaAWZ522TJqUOGj6G6roRSsx3n6esryoKkLoaXAvPja64PZp559Pfvge441E5nKYRV/89y3VOaIsxsiHChFMAFcXBhH/xxtOyUt9TzN8Q3RtYqvUpmdaPWsCtQmEmT6XWA2rTKi9NIPj53f+tqPP/4z9wy86y3DePtdP4GDl36Ir3zn4NWtF144fiyCOxWil4k//crnasciNRyL1HBsoIZjqGEgUv/80dTc7ss/fCXOakAcphzS946x6Js6cxW6FmY5fXUb1nvdnVrMZGa7FbTACsyNR85sDq+XLM9G/8Frrw986lvXMRgBhiI1nIgAQwO14+wWI00iASt2vUrMmq5XFzNKfiXZRxEMeWNEEYPaUdtHNs8TshIqlW24MrBe5tFzmDe7ZMUiThFVuKbqcZqus1hCT9ar6MXUuMlDbXfwqS52IKfAkFARC6DAVBQjGNKf0UsU6ltV6Q4/XlWwMv2W74ESmFd/9PpPRyKRKKtDz6MyiFr2OE1VFkuoSUJtavK24uJdO6gK1rl+y/SbU8KO5hPluzdKfgvM2wAUIpHIJgAkEmeUWpWalsiGrKIEnSOFyuy1wy/Duv+930So4vPzVfLTq67LuMPRhjI2Bvv7jsY5x23Xw3jERAdpuAgSJDLymWgjQHmP05SXNDUTvl1xxlmXnpuCc1u9q7IN/weNsxaRwxG8O3xLF5GJymeiRfTiil2u6XpyMZPR8cZTg49M0bzeb44gUqvdWt9190apcCJSmzoeAU5GajgeAQYHahhCDUMRYDBSw1Ck1jiLrD7lOILb/js4UMOgTD+uf/dj0/83n6Z84Rdub2BKBENsUiyWAjevTwYwo0Y04ccCQOmHjwOouNANQnoUWRtT9eLAOakHlbAsgG0UmPyJSO0cBYYCQwgh3TLQ8G+26gghhLgiMIQQQggFhhBCCAWGEEJIyAUmySwhhBDCCIYQQkjPCEycWUIIIcQJbq7kH14vxY5H/D1G9PjQse+++qPXf8P490tHR3feNTz8MVjv0fNQiMoshT7csyjsaFoihtabhFaKxVKFuUR6VmCCEL0cHzr2wiuvvlZoqHinrX5XLJYKIXJEyR5K62wbu6oWiyXdQeecanNJPmgOWvImKfkzpXA9UN/SpmB8isVS1ed3iEN9h2I3KReLpU2P7dcNCm76MvEdrfxHVeqJozZlFpiecVykZ4TwCSthKBZLGSccDNpvrplCAE53FCHMilPupLfA2KfvgtzvijiFgg/vEhWhGw6IvT3kZD6o2K8LXNS0xHuLxVLZJdt70uKypNMNBvMYTBBaIqR/UGmwxB1yBFZO7pSfGaFpiZimJfIAvo1696ZTTvkcgCc1LVGQaMJL4kERF5cayH41uN3ywyoNrLNOP3QAAE4+/nTMTiX80Fui+OBborj3jhM/ph8lpK24ZE3C4hZTAL6haQldIgtCAsGgHdVc/Ll34MP3vx13DN3sWRuoHB7h77/5rf/99xs37lB85lW0OGzqzrve/D8sEtInwhJFfbt8L88AuQAgqWmJlBvdLIR0KjApqwv/+r3vxJn7fuqNcdfIMP4g8b47/uKrX/vB9175v7da3Gb3Tz7wcEsx+92DH7BESD+IS1zExY+uuQkABU1LJCkyxG8GTEbZkt96x9uaiovBmwYH8Xun33tC4XlVZjnpc3GJoT747ee4z7CITJwlQnwVmJOPP21phA+Pvd3yRiN3vOnNbztx/ClmKQmxuEQlcgnC4LchMlGWDPEzgrE0wHuGTyrdbOTEm/6NWUpCTB7dHzm+i/pxx8anW5HZdOldy6gf9xsUCn1iQ5v9VCEGnbzZf9648QJ9DAlp9DKLzqZ57oowFVqNmUi3WxL1sVK7kwamNC2RcWpRq0GxWKrKFPFZGz+LQW023bZNwSj7tNj6upSdYyLZb+Nmg1AYFyn9x/efS9x397stLrvy8muvaccioWhlEGIWgCgAuw58F0BGxTHKLgR5AHlx6lmbQpPVtITjq7TFGZZt5FNSUWAKxWIp2wNFX+mRdPrGwI1HzlgayKPPfvv7FuHw0drTX/87eDslk5CgkIG9Qf0rxWIp3kmru1gsFYrFUhLAJRs/G5Y0EuKtwJhC0tZx4Ks/Sv75U89+ssV123vf/d6Hnjt66VMqLRNmOelDUjbFJdXtA6XlfN6OCHLAn/glMJtWF27999Gl6c9+ufKlyn/9Kuq7Fz8E4P6Pf347/8ndb/4TrAc3jy49+DAFhvQVMvaiGr1cdUJcTCKTB/CojShmliVGvGTQJDBrCtef+6tnnz/3ieee3x2K1KonIogPDShPydxkdpM+RNVpH9mMdFTJShpURC4FZwelCbGOYG48cqYC4IqN302gPt4ybLMiEBJWgdHd2F5f7qlat6bYTUb8iGCA+iDgLNxZJHbpzz74KxVmN2kg6sD5NnG/Ei8r5VXri+5WOorFUl7TErpiWuLgWCjxWmCO5hPVuzdKs7A+M8Au23/5izOMXkirSPjJHk6/qrhd9eBwsE2oTQFOUmCcK39NS3Sal4UwTHG+baHl9+cShXs/UzwP4DGH7r8LDiyS/iWmeF3Zg7QUFAUmxmJzjGF0vjRjStMSm/2+IelA4xff+ZiWR32GWLfbQFwFkFz90EyVdkhCLjBeRAwVh9NM3Cfa7y840OzL/V/XCmKIVzq45xGA82vJX5r9xNQ0xYVQYDzAp61SCLEvMADw7K+9v/r1j74/BeB+EZrrFvfaRX3hV+xTH/5wnllLyE3KzAISRiw3u3z67AcqkPn705/9clzCuqT8uSqVp/zpmSSjFUIIIeoCY2brIx80WmIMxwlRJ846Q8LIALOAkI6pBCUhDqwnIt5TZQRDiHs4cZ5GDGrTc/0UmKQHEUys10Qx5Hbf91OUKTDE9wig28VmNs4Y8VNg4h6kJelwmok123J0AmkBu8gI6RzVFuhZD/YAm1W8rsBiIxQYQgKOdHGoLkjOuJUOTUukoL4nWpklRygwhPQGm6oC40YUI/fMKl7uxZ5ohFBgCPFYYIbhzlksOtQPPNtkcREKDCE9QrFY2oT1LhcGZzUt4ZjISNeY6gSHIwoMocAQ0ntkbVx7TtMS+W67y+T8Fzu7nuvsHiMUGEJ6L4rJ24hiIFFHuZPFkZqWSGpaogzggo2fHcHFA88IaQXXwRDiDBkAT9i4/hSAJzUtYSw2LbTaEVmEKI76noATnURYjF5cIaZpiazD9yxLt6svOPg++WKxVKHAEOJMFLOpaYkrsL/o8xSAiwAualrC+G5b/htH90eYbxeLJUYv7mCUndNO/iEfj19w6n1SAGLsIiPE2Shm14H7TMmnW3E5Ak+U7UWS/SC+mpagwBDiYBRTFeewG4DkHAFIsmuM+AgFhpA+FBlDXMosEeInFBhC3BOZqz48fhdAnOJCKDCE9LHIFIulWQCLUN+vrFsuFYuleLFYqrAECAWGkP4XGh31s1quuPiYKwDu7/boA0IcpkKBIW5RUDFABxx4QSFCuO5nRkg0kwJwP4BLDqXnCMCjIiypHolayorR3GZA0uqbY+6Re7a1z15ZB2OVMdcRLqoWf98OSMu9oGmJj6L1YVtVOLf5YxLtp+PmA5InFdS3lclqWiIuaU5KhGO1YeWROL0C2izKDHg0V5VFo+3KqhyE8SNZ13Qe6ieFOubvZGcIx21P0xIPwbsp0JsAEKnVaoE3TE1LbAI426LSzfZiZesiL6JSeFMtxHaWA7w9W7ZxANFGIWZ5kl6lJwSGEEJI78ExGEIIIRQYQgghFBhCCCEUGEIIIYQCQwghhAJDCCGEAkMIIYRQYAghhFBgCCGEUGAIIYQQJwn8Zpejub0lACsO3Or0QXp8p81zJgEsAVg4SI8f2kzjGIBn5LcbPrzvIYAHGtM9mtubA3AZwEy7d2+RDuO3pw/S4/sN+fSMA+WxfJAeX7VIQxrApOljsGN8DtLjOQ9scE6ePyJ5vdNtOXtkS03LsInNj8hnsoldmfN6w0dbHgGQNpXDmHwM9uWzBWCj2ft2kH8d+wT5/TNN8lSFnYP0+GnFZ4wAmAMwLc8aayi7rvKj2zrYC7spb8mnFYah7UimtjJaqwxekULaAbBqM41jJqN3inbv08wgD9uk6/Jobm/GZiUxv9N+Q0XekL81w3BU+xZ5vmVh1CumZxw2XH/T2EdzeysiVo4LjTj7dXnWoXxGAIyM5va2xPHsO/xYJ22pVRkaTItzapbH5mumJT/2Aax2kNdO2HK6Qay2Gt5pxJTWldHcXk7s4rCL/OvGJwBAzpS/KoyYBFRVwJdM1+83lKE5P2zZq1N1MPACIy3vGYVW0vJBenyri5bKtPxzqUNjcpqO36cJk9KSnXegPA7b3Wc0tzcN4BqAnFWE0qI1tiLO5BDAcqvWlzj/OSmvy1KG3TqURtbFOS9IOg5NLWnD7ubR+8y0szXJ2zl578tSxnZa9U7aslVajXSmAUyP5vbm7UbvTvkEcbg5G880egYWFOrJNVNDzqgnhy3yw/g8M5rbO91OZJyugxyDudU6ghjRiKh3P7EDYE7EOMhclrLISTfJaqvKcJAe3xcBe0CuT8vvne4WWz1Ij+eMSnOQHj+U525Jno71e+U4SI/vHKTHl015PQfgmjijoKV14yA9PiNOegzAeofp9NQnSN2ctBLjBnFZPkiPP2C2zxb5MS+N9FWFCMbROhh6gREHkRaHsSqqvdRnr7ksIrMirc8glsOSOK7cQXpcuXUsDn/BcHwOiqi5a6BdF990WOqKKa8XTFFxUNOaE7sfM4lFIH2C1MkVAFsKUf9lyfsFOz0EB+nxLYUxT8frICOYW4azKhm6CmCsD6OYeway6nu9tOJj6d0k6Rz3xqZ7edvNP/nWQXJT2j0hcO0mm4XcAqoWX1MMc41i9wr87drwT9MSjq/QDQkVsQAKTEUxgiH9Gb1EAbxVle7w41UFK9Nv+R4ogXn1R6//dCQSibI69Dwqg6hlj9NUZbGEmiTUpiZvKy7etYOqYJ3rt0y/OSXsaD5RvnujpLcQmHcAKEQikU0ASCTOKLUqNS2RDVlFCTpHCpXZa4dfhnX/e7+JUMXn56vkp1ddl3GHow1lbAz29x2Nc47brofxiIkO0nARJEhk5DPRRoDyHqcpL2lqJny74oyzLj03BedmvVeyDf8HjbMWkcMRvDt8SxeRicpnokX04opdrul6cjGT0fHGU4OPTNG83m+OIFKr3VrfdfdGqXAiUps6HgFORmo4HgEGB2oYQg1DEWAwUsNQpNY4i6w+5TiC2/47ONDrTz+eKlaR0djVGz84dPKt42TafXsjRbNZWoxNiuWYq0BgKXAvj46KYS4gRAcICkkASj98HEDFhW4Q0qPIeprAOanHlbBIT/wbnUURl46O7pzY+McbP7pkNQ9YbTZOoLZIT3RTC0PbkUxtZbRWGbwihbQDYNVmGsdMRu8U7d6nmUEetknX5dHc3ozNSmJ+p/2GirwhfyeVYWg7kqmtjNYqg1ekkHYArNpM45jJ6J2i3fs0M8jDNum6PJrbm7FZScyvI/w86voBcqb8VWHEJKCqAr5kun6/oQzN+WHLXp2qg4EXGGl5zyi0kpYP0uNbXbRUpuWfSx0ak9N0/D5NmJSW7LwD5XHY7j6jub1pANcA5KwilBatsRVxJocAllu1vsT5z0l5XZYy7NahNLIuznlB0nFoakkbdjeP3memna1J3s7Je1+WMrbTqnfSlq3SaqQzDWB6NLc3bzd6d8oniMPN2Xim0TOwoFBPrpkackY9OWyRH8bnmdHc3ul2IuN0HeQYzK3WEcSIRkS9+4kdAHMixkHmspRFTrpJVltVhoP0+L4I2ANyfVp+73S32OpBejxnVJqD9PihPHdL8nSs3yvHQXp85yA9vmzK6zkA18QZBS2tGwfp8RlxsmMA1jtMp6c+QermpJUYN4jL8kF6/AGzfbbIj3lppK8qRDCO1sHQC4w4iLQ4jFVR7aU+e81lEZkVaX0GsRyWxHHlDtLjyq1jcfgLhuNzUETNXQPtuviyw1JXTHm9YIqKg5rWnNj9mEksAukTpE6uANhSiPovS94v2OkhOEiPbymMeTpeBxnB3DKcVcnQVQBjfRjFzFNFWQ9ay1Mq9Arq/e8LHTqUBZOIehFVjJiiw1AhzntVnMl0gNO5Kl1IS0H1CVIXL0vdtOoaM8bMNpwec3SrDoZaYEwzMPZNYalRcHN95hT2RWSMEDtImLsjumG14X7dsCWVfrqF3aSlMu6EtPqsNjjjoLKFehfXWEB9wmWJslQG4NOmHomeqINhj2DS4nBXzeGeGNR0kFtnHYrMlhjnpMz8CApzAA67nZYrvz90whFIZd+QVvpckxbniFNbsCVzPQnyOJThtMeC5hMauqQ2FIVvw4WZi67VwdAKjBTYkrRUcj3aOuu022ADwFKAugHH0H4qut0W65hDebUgeXV5NLc3LfllrG2Yd3BmVK9iOLpJ+gTbzzLW2OwoNlSMPN7ppToY5ghmTloqubGArtNu0IHGL77zMS2P+gyxbreBuAogufqhmSrtkIRcYLyIGCoOp5m4T7TfX3Cg2Zf7v64VxBCvdHDPIwDn15K/NPuJqWmKC6HAeIBPW6UQYl9gAOAf/uKz2//9pSMTAO4XobluvOSC4ntfV+x3f3lp+z9/+pcuXBQpMKQ/Kct+SmHFtOx4vBhitJIP9YMKh6MYcrsvSTHoZkezJlrb2wKQlym/Y62co7SknJfrN+DMeTfGlM4lq1ai2IKx+HIft85K6TdhMaLa52HabTfgjSWVKMZVn2A6m8axzSkbzsdaH83ttRUa2YHiskRR5gaUJ3UwFGMwXbZUzC0WY+pjK2NJ23AwVv2xK6O5PTvjPY60kBoWYY744BgWRnN7O7h1oNeKnKRorhjmU/8O4fwivQV5/2ujub1Vk4AYLUFjptKkOI95sbGWU5g7wElbsmJd8rwZ0w3RXSdHOftiyyIAxuFwC176BNOUZIgI2dlgdh9tDs87SI/vjOb2HsCtg8GmjZl1uH3s0Fx2W6r56mQd7AeB2Yf1kcjTJoPoxvEa4eNYQz+/UaiN54S3Y1IGCFul224E0WzFskretDLgZTGufRfKw+r5OQC5hvPAzZVF6TzwblqJo7m90+IglloI7Y4425zRYrZaJ6OIk7ZkVRaNotksLUZE140j9sWWpUwMkVnw2Cd08/5GunYsIqgFeb853JpkMtlQdlvoYINMp+pgpFargRDSMvptHMg9lEq13+b6EdR3puX2OyTU/D+tanT33N58jQAAAABJRU5ErkJggg==" alt="Metahotel" style="height:28px;width:auto;max-width:none;object-fit:contain;display:block;" class="shrink-0">
+        </div>
+
+        <div class="border-l border-slate-200 pl-3">
+          <h1 class="text-xs sm:text-sm font-black text-brand-dark tracking-tight flex items-center gap-2">
+            <span class="font-brand-title">METAHOTEL · MURAL DE SALA</span>
+            <span class="text-[9px] px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-mono font-bold">MANUAL V5</span>
+          </h1>
+          <p class="text-[11px] text-brand-grey font-brand-body">Radar Somático de Equipo · www.metahotel.es</p>
+        </div>
+      </div>
+
+      <!-- Acciones de sala y carga de imagen local -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Selector de color de gomet interactivo -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <span class="text-[10px] font-bold text-slate-500 px-1.5 font-mono">Gomet:</span>
+          <button onclick="setGometColor('#F43F5E')" class="w-5 h-5 rounded-full bg-[#F43F5E] border-2 border-white shadow-xs mx-0.5 hover:scale-110 transition" title="Ira"></button>
+          <button onclick="setGometColor('#8B5CF6')" class="w-5 h-5 rounded-full bg-[#8B5CF6] border-2 border-white shadow-xs mx-0.5 hover:scale-110 transition" title="Miedo"></button>
+          <button onclick="setGometColor('#2563EB')" class="w-5 h-5 rounded-full bg-[#2563EB] border-2 border-white shadow-xs mx-0.5 hover:scale-110 transition" title="Tristeza"></button>
+          <button onclick="setGometColor('#16A34A')" class="w-5 h-5 rounded-full bg-[#16A34A] border-2 border-white shadow-xs mx-0.5 hover:scale-110 transition" title="Asco"></button>
+          <button onclick="setGometColor('#F59E0B')" class="w-5 h-5 rounded-full bg-[#F59E0B] border-2 border-white shadow-xs mx-0.5 hover:scale-110 transition" title="Sorpresa"></button>
+          <button onclick="setGometColor('#FACC15')" class="w-5 h-5 rounded-full bg-[#FACC15] border-2 border-white shadow-xs mx-0.5 hover:scale-110 transition" title="Alegría"></button>
+        </div>
+
+        <button onclick="clearGomets()" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-brand-dark text-xs font-bold transition shadow-xs">
+          Limpiar
+        </button>
+
+        <!-- Botón para vincular archivo original de logo si se desea -->
+        <label class="cursor-pointer px-3 py-1.5 rounded-lg border border-brand-blue/30 bg-brand-light hover:bg-white text-brand-blue text-xs font-bold flex items-center gap-1.5 transition shadow-xs">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+          <span>Cargar Logo PNG</span>
+          <input type="file" accept="image/*" class="hidden" onchange="uploadCustomLogo(event)">
+        </label>
+
+        <button onclick="window.print()" class="px-4 py-1.5 rounded-lg bg-brand-dark hover:bg-black text-white text-xs font-black flex items-center gap-1.5 transition shadow-sm">
+          <svg class="w-4 h-4 text-brand-mint" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          <span>IMPRIMIR / PDF</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- CONTENEDOR DEL PLIEGO IMPRIMIBLE -->
+  <main class="sheet-wrapper flex-1 w-full max-w-[1440px] mx-auto p-3 sm:p-5 md:p-6 flex items-center justify-center">
+
+    <!-- Escenario de ancho fijo que el script reescala para caber en pantalla -->
+    <div id="fit-stage" style="width:1200px; max-width:none; flex-shrink:0;">
+
+    <!-- EL PLIEGO FÍSICO (CANVAS A3/A2/A1 EN PROPORCIÓN HORIZONTAL ISO) -->
+    <div class="print-container relative w-full bg-white border border-slate-300 rounded-xl shadow-xl p-5 sm:p-7 flex flex-col justify-between overflow-hidden">
+      
+      <!-- Cruces de corte para imprenta -->
+      <div class="crop-mark crop-tl"></div>
+      <div class="crop-mark crop-tr"></div>
+      <div class="crop-mark crop-bl"></div>
+      <div class="crop-mark crop-br"></div>
+
+      <!-- ENCABEZADO OFICIAL METAHOTEL -->
+      <div id="mural-header-row" class="flex items-center justify-between pb-3 border-b-2 border-brand-dark shrink-0 gap-4">
+        
+        <!-- Logotipo Metahotel Oficial (Integrado directamente y de alta definición) -->
+        <div class="flex items-center space-x-4">
+          <div id="mural-logo-container" class="flex items-center">
+            <!-- Imagen subida por el usuario con fallback instantáneo al vector oficial -->
+            <img id="mural-logo-image" 
+                 src="data:image/png;base64,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" 
+                 alt="Metahotel Talento & Liderazgo" 
+                 style="height:40px;width:auto;max-width:none;object-fit:contain;display:block;" class="shrink-0"
+                 onload="this.classList.remove('hidden'); document.getElementById('mural-logo-vector').classList.add('hidden');"
+                 onerror="this.style.display='none'; document.getElementById('mural-logo-vector').classList.remove('hidden');">
+
+            <div id="mural-logo-vector" class="h-14 sm:h-16 flex items-center">
+              <svg class="h-14 sm:h-16 w-auto drop-shadow-xs select-none" viewBox="0 0 340 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="plKeyGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+                    <stop offset="0%" stop-color="#0099CD" />
+                    <stop offset="100%" stop-color="#96CCAE" />
+                  </linearGradient>
+                </defs>
+                <!-- Llave de cuerda Metahotel -->
+                <path d="M 24 19 C 13 19 4 28 4 39 C 4 46 9 52 15 55 C 9 58 4 64 4 71 C 4 82 13 91 24 91 C 35 91 44 82 44 71 C 44 65 40 59 34 56 L 48 56 L 48 51 L 34 51 C 40 48 44 42 44 36 C 44 25 35 19 24 19 Z" fill="url(#plKeyGrad)" />
+                <circle cx="24" cy="38" r="6.5" fill="#FFFFFF" />
+                <circle cx="24" cy="71" r="6.5" fill="#FFFFFF" />
+                <rect x="44" y="48" width="7" height="11" rx="1.5" fill="#303038" />
+                <!-- Letra H con terminaciones suaves Umba Soft -->
+                <rect x="52" y="6" width="9.5" height="76" rx="4.7" fill="#303038" />
+                <rect x="114" y="6" width="9.5" height="76" rx="4.7" fill="#303038" />
+                <rect x="52" y="39" width="71.5" height="9.5" fill="#303038" />
+                <!-- META (Gris 70% #706F6F en Umba Soft Bold) -->
+                <text x="142" y="38" font-family="'Umba Soft', 'Outfit', sans-serif" font-size="35" font-weight="800" fill="#706F6F" letter-spacing="3.8">META</text>
+                <!-- HOTEL (Black 90% #303038 en Umba Soft Bold) -->
+                <text x="142" y="73" font-family="'Umba Soft', 'Outfit', sans-serif" font-size="35" font-weight="800" fill="#303038" letter-spacing="3.8">HOTEL</text>
+                <!-- TALENTO & LIDERAZGO (Pantone 7467u #0099CD en Open Sans Light) -->
+                <text x="53" y="89" font-family="'Open Sans', sans-serif" font-size="12.8" font-weight="300" fill="#0099CD" letter-spacing="3">TALENTO &amp; LIDERAZGO</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Separador vertical sutil -->
+          <div class="h-11 w-[1.5px] bg-slate-300"></div>
+
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5 text-[9.5px] font-mono font-bold tracking-widest text-brand-grey uppercase">
+              <span>EMO-KIT</span>
+              <span>•</span>
+              <span class="text-brand-blue font-bold">RADAR SOMÁTICO DE EQUIPO</span>
+            </div>
+            <h2 class="text-base sm:text-lg font-brand-title uppercase tracking-tight text-brand-dark leading-tight">
+              MAPA DE CLIMA EMOCIONAL &amp; AUTORREGULACIÓN
+            </h2>
+          </div>
+        </div>
+
+        <!-- Bloque Institucional: URL www.metahotel.es + Rotulado a Mano -->
+        <div class="flex items-center gap-4 text-right font-mono text-[10px] text-brand-grey">
+          <!-- Presencia Web Corporativa Destacada -->
+          <div class="hidden sm:flex flex-col items-end border-r border-slate-200 pr-3.5">
+            <span class="text-[9px] uppercase font-bold tracking-wider text-slate-400 font-brand-body">DESARROLLO DE EQUIPOS</span>
+            <a href="https://www.metahotel.es" target="_blank" class="text-xs font-black text-brand-blue hover:text-[#007ba5] tracking-tight transition font-brand-title">
+              www.metahotel.es
+            </a>
+          </div>
+
+          <!-- Campos para rotular en vivo -->
+          <div class="border-l border-slate-200 pl-3">
+            <span class="block text-slate-400 font-bold uppercase">EQUIPO / CLIENTE:</span>
+            <div class="w-28 border-b border-dashed border-slate-400 mt-1 h-3"></div>
+          </div>
+          <div class="border-l border-slate-200 pl-3">
+            <span class="block text-slate-400 font-bold uppercase">FECHA:</span>
+            <div class="w-20 border-b border-dashed border-slate-400 mt-1 h-3"></div>
+          </div>
+          <div class="border-l border-slate-200 pl-3">
+            <span class="block text-slate-400 font-bold uppercase">FACILITADOR:</span>
+            <div class="w-24 border-b border-dashed border-slate-400 mt-1 h-3"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CUERPO PRINCIPAL DEL PLIEGO: 3 ZONAS DE TRABAJO -->
+      <div id="zona-grid" class="grid grid-cols-12 gap-4 items-stretch my-3.5 flex-1 min-h-[620px]">
+        
+        <!-- ========================================================= -->
+        <!-- ZONA 1: LEYENDA TÉRMICA & CONTEO DE EMOCIONES (3 COLS)    -->
+        <!-- ========================================================= -->
+        <div id="zona-1" class="col-span-3 flex flex-col justify-between bg-slate-50/70 border border-slate-200 rounded-lg p-3">
+          
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-2">
+              <span class="font-mono text-[10px] font-black text-brand-dark uppercase tracking-wider font-brand-title">
+                1. CÓDIGO DE GOMET &amp; RECUENTO
+              </span>
+              <span class="text-[8.5px] font-mono text-brand-grey font-semibold">1 marca / pers.</span>
+            </div>
+
+            <p class="text-[10.5px] text-brand-grey leading-snug mb-2.5 font-brand-body">
+              Consulta tu baraja <strong>Metahotel EMO-KIT</strong>. Coloca el gomet adhesivo según la sensación predominante y anota el pulso:
+            </p>
+
+            <!-- Lista de Emociones y Casillas de Palotes -->
+            <div class="space-y-1.5">
+              
+              <!-- Ira -->
+              <div class="flex items-center justify-between p-2 rounded bg-white border border-slate-200 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-full bg-[#F43F5E] border border-black/10 shrink-0 shadow-xs"></span>
+                  <div>
+                    <strong class="text-brand-dark text-[11px] font-black block leading-none font-brand-title">IRA</strong>
+                    <span class="text-[9px] text-brand-grey font-brand-body">Límites, asertividad</span>
+                  </div>
+                </div>
+                <div class="w-9 h-6 border border-slate-300 rounded bg-slate-50 flex items-center justify-center font-mono font-bold text-slate-700 text-xs"></div>
+              </div>
+
+              <!-- Miedo -->
+              <div class="flex items-center justify-between p-2 rounded bg-white border border-slate-200 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-full bg-[#8B5CF6] border border-black/10 shrink-0 shadow-xs"></span>
+                  <div>
+                    <strong class="text-brand-dark text-[11px] font-black block leading-none font-brand-title">MIEDO</strong>
+                    <span class="text-[9px] text-brand-grey font-brand-body">Incertidumbre, alerta</span>
+                  </div>
+                </div>
+                <div class="w-9 h-6 border border-slate-300 rounded bg-slate-50 flex items-center justify-center font-mono font-bold text-slate-700 text-xs"></div>
+              </div>
+
+              <!-- Tristeza -->
+              <div class="flex items-center justify-between p-2 rounded bg-white border border-slate-200 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-full bg-[#2563EB] border border-black/10 shrink-0 shadow-xs"></span>
+                  <div>
+                    <strong class="text-brand-dark text-[11px] font-black block leading-none font-brand-title">TRISTEZA</strong>
+                    <span class="text-[9px] text-brand-grey font-brand-body">Pérdida, asimilación</span>
+                  </div>
+                </div>
+                <div class="w-9 h-6 border border-slate-300 rounded bg-slate-50 flex items-center justify-center font-mono font-bold text-slate-700 text-xs"></div>
+              </div>
+
+              <!-- Asco -->
+              <div class="flex items-center justify-between p-2 rounded bg-white border border-slate-200 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-full bg-[#16A34A] border border-black/10 shrink-0 shadow-xs"></span>
+                  <div>
+                    <strong class="text-brand-dark text-[11px] font-black block leading-none font-brand-title">ASCO / RECHAZO</strong>
+                    <span class="text-[9px] text-brand-grey font-brand-body">Invasión, toxicidad</span>
+                  </div>
+                </div>
+                <div class="w-9 h-6 border border-slate-300 rounded bg-slate-50 flex items-center justify-center font-mono font-bold text-slate-700 text-xs"></div>
+              </div>
+
+              <!-- Sorpresa -->
+              <div class="flex items-center justify-between p-2 rounded bg-white border border-slate-200 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-full bg-[#F59E0B] border border-black/10 shrink-0 shadow-xs"></span>
+                  <div>
+                    <strong class="text-brand-dark text-[11px] font-black block leading-none font-brand-title">SORPRESA</strong>
+                    <span class="text-[9px] text-brand-grey font-brand-body">Cambio inesperado</span>
+                  </div>
+                </div>
+                <div class="w-9 h-6 border border-slate-300 rounded bg-slate-50 flex items-center justify-center font-mono font-bold text-slate-700 text-xs"></div>
+              </div>
+
+              <!-- Alegría -->
+              <div class="flex items-center justify-between p-2 rounded bg-white border border-slate-200 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-full bg-[#FACC15] border border-black/10 shrink-0 shadow-xs"></span>
+                  <div>
+                    <strong class="text-brand-dark text-[11px] font-black block leading-none font-brand-title">ALEGRÍA</strong>
+                    <span class="text-[9px] text-brand-grey font-brand-body">Logro, sintonía</span>
+                  </div>
+                </div>
+                <div class="w-9 h-6 border border-slate-300 rounded bg-slate-50 flex items-center justify-center font-mono font-bold text-slate-700 text-xs"></div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Pauta de facilitación al pie de columna 1 -->
+          <div class="mt-2.5 pt-2 border-t border-slate-200 text-[9.5px] font-mono text-brand-grey leading-tight font-brand-body">
+            💡 <strong>Pauta de sala:</strong> Pega los gomets adhesivos (Ø 12-15mm) en la silueta central según las sensaciones físicas que experimentes en el cuerpo.
+          </div>
+
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- ZONA 2: SILUETA ANATÓMICA NEUTRA METAHOTEL (4 COLS)       -->
+        <!-- ========================================================= -->
+        <div id="zona-2" class="col-span-4 flex flex-col items-center justify-between bg-white border border-slate-200 rounded-lg p-3 relative">
+          
+          <div class="w-full flex items-center justify-between border-b border-slate-100 pb-1.5 mb-1 text-center">
+            <span class="font-mono text-[10px] font-black text-brand-dark uppercase tracking-wider mx-auto font-brand-title">
+              2. MAPA CORPORAL COLECTIVO (ZONA DE GOMETS)
+            </span>
+          </div>
+
+          <!-- Contenedor interactivo y de impresión para gomets -->
+          <div id="silhouette-dropzone" onclick="handleSilhouetteClick(event)" class="touch-target relative w-full h-full flex-1 flex items-center justify-center overflow-hidden py-1">
+            
+            <!-- Imagen original de la silueta enviada: silueta_neutra.jpeg -->
+            <svg id="body-image-ref" viewBox="0 0 1376.000000 3128.000000" preserveAspectRatio="xMidYMid meet" class="h-full w-auto max-h-[510px] object-contain select-none pointer-events-none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0.000000,3128.000000) scale(0.100000,-0.100000)" fill="#CBD5E1" stroke="none"> <path d="M6915 30554 c-156 -18 -280 -56 -440 -136 -402 -202 -614 -484 -713 -948 -35 -162 -45 -321 -37 -604 7 -250 7 -259 -11 -251 -83 34 -137 27 -171 -24 -15 -22 -18 -46 -17 -161 4 -380 149 -751 303 -776 22 -4 47 -12 56 -18 8 -6 30 -65 49 -131 19 -66 55 -177 80 -247 61 -173 70 -259 63 -608 -6 -305 -15 -364 -69 -459 -43 -75 -135 -165 -238 -232 -70 -46 -450 -263 -740 -422 -152 -83 -258 -117 -657 -211 -282 -67 -387 -101 -518 -170 -329 -172 -530 -374 -689 -694 -145 -291 -218 -527 -251 -810 -19 -166 -22 -357 -11 -742 10 -362 10 -356 -70 -622 -117 -391 -146 -539 -194 -993 -59 -557 -112 -797 -246 -1115 -173 -411 -208 -510 -263 -728 -80 -315 -101 -488 -151 -1252 -34 -508 -38 -569 -80 -1030 -34 -371 -47 -476 -96 -790 -61 -392 -64 -420 -74 -695 -10 -305 -37 -556 -106 -1005 -61 -397 -61 -406 30 -605 38 -82 93 -215 123 -295 138 -369 151 -384 719 -792 134 -96 175 -106 263 -62 92 46 111 98 75 216 -13 45 -24 91 -24 102 0 12 -34 70 -75 130 -71 104 -75 112 -75 165 0 80 -23 115 -122 191 -152 115 -185 147 -214 206 -24 49 -28 70 -32 177 -5 140 10 222 57 315 37 74 53 88 75 67 21 -22 32 -67 51 -220 27 -217 68 -345 129 -407 64 -63 171 -85 250 -50 55 25 81 72 92 164 9 76 -12 268 -42 386 -23 87 -26 129 -34 397 -5 165 -14 322 -20 349 -22 104 -76 216 -178 375 -78 118 -95 168 -95 271 -1 152 59 364 228 814 90 242 138 357 213 516 28 58 118 263 200 455 83 193 183 424 222 515 122 281 226 612 275 875 33 178 100 651 125 875 31 289 57 393 195 805 52 154 115 361 140 460 54 211 106 385 115 385 10 0 39 -99 236 -785 130 -453 196 -887 180 -1180 -9 -151 -25 -266 -75 -541 -22 -121 -46 -263 -52 -317 -16 -139 -6 -419 21 -597 13 -84 19 -163 16 -188 -3 -24 -40 -157 -81 -295 -92 -310 -114 -404 -210 -877 -82 -406 -101 -513 -140 -780 -14 -96 -46 -301 -71 -455 -103 -641 -161 -1083 -191 -1455 -21 -270 -24 -1062 -5 -1335 55 -769 97 -1107 212 -1690 78 -397 80 -448 51 -1200 -20 -518 -31 -709 -46 -817 -15 -99 -36 -207 -165 -828 -105 -503 -137 -762 -147 -1175 -10 -431 25 -771 227 -2205 149 -1057 175 -1299 168 -1564 -5 -161 -8 -181 -48 -336 -40 -157 -42 -174 -49 -361 -7 -195 -7 -197 -39 -262 -39 -80 -203 -334 -280 -437 -74 -98 -206 -234 -365 -378 -174 -158 -277 -312 -277 -418 0 -71 62 -151 155 -197 160 -79 297 -107 525 -107 136 0 185 -4 256 -21 107 -25 253 -27 339 -4 96 25 160 63 251 148 103 97 154 167 229 316 74 149 83 160 185 231 98 68 139 114 178 198 25 53 27 66 27 192 -1 109 -6 161 -29 270 -40 191 -41 323 -2 530 l30 155 -17 125 c-9 69 -26 177 -38 240 -19 105 -20 140 -15 395 5 298 3 276 85 763 84 495 176 902 286 1267 200 660 238 877 238 1345 0 316 -13 533 -63 1029 -17 161 -30 325 -30 365 0 182 46 391 155 701 95 269 129 383 185 605 78 309 99 448 150 975 59 615 97 815 269 1420 315 1107 404 1557 451 2280 14 202 16 206 109 213 82 6 129 -11 147 -53 8 -21 23 -158 39 -352 26 -339 53 -569 86 -748 53 -287 162 -729 274 -1115 209 -719 270 -1006 315 -1500 27 -292 67 -651 86 -765 12 -78 66 -311 135 -595 12 -47 47 -152 79 -235 201 -521 231 -717 180 -1175 -20 -182 -49 -609 -61 -881 -21 -501 26 -827 202 -1404 160 -527 213 -760 333 -1478 67 -395 80 -540 73 -797 -4 -160 -11 -225 -37 -365 -41 -224 -41 -291 0 -485 28 -137 31 -167 27 -260 -3 -58 -17 -160 -31 -228 -33 -157 -41 -261 -27 -336 24 -128 88 -219 210 -300 93 -61 120 -95 202 -258 69 -138 76 -147 183 -254 118 -118 168 -150 281 -179 79 -20 244 -20 315 1 38 11 123 19 280 24 245 9 310 20 453 80 143 60 193 104 218 195 16 56 -2 122 -56 216 -46 78 -114 150 -296 312 -171 153 -272 269 -399 458 -66 97 -138 214 -161 259 l-42 83 -8 191 c-7 181 -9 199 -50 356 l-44 165 1 255 c1 300 -1 287 149 1380 147 1062 142 1030 170 1275 75 671 86 953 54 1385 -24 324 -70 598 -199 1175 -71 318 -86 400 -105 555 -22 191 -49 894 -49 1290 0 370 -6 315 83 750 62 303 118 710 146 1070 74 931 71 1568 -11 2305 -28 252 -103 756 -143 960 -22 110 -54 292 -71 405 -39 260 -164 1002 -184 1095 -33 155 -97 416 -125 510 -99 336 -121 421 -121 459 0 24 9 110 21 192 15 106 21 205 22 344 1 205 -10 305 -59 545 -55 270 -66 356 -71 570 -10 409 55 766 303 1668 43 158 81 287 84 287 14 0 75 -193 129 -405 36 -139 90 -313 136 -439 78 -215 175 -535 194 -641 6 -33 17 -130 26 -215 31 -299 99 -778 136 -950 44 -204 167 -576 256 -775 43 -96 274 -626 335 -770 17 -38 72 -158 124 -266 51 -108 111 -248 133 -310 21 -63 72 -204 111 -314 167 -463 193 -593 145 -750 -7 -25 -45 -94 -83 -153 -77 -118 -112 -184 -150 -282 -25 -63 -26 -74 -33 -385 -6 -292 -9 -329 -32 -425 -40 -168 -51 -248 -51 -361 1 -161 37 -214 156 -226 70 -7 156 25 191 70 65 85 95 185 127 419 20 144 39 208 60 208 17 0 79 -92 101 -150 24 -61 26 -107 11 -277 -14 -157 -40 -197 -246 -378 -85 -74 -120 -131 -115 -188 3 -26 -10 -52 -57 -123 -71 -105 -125 -235 -131 -314 -5 -50 -2 -59 23 -89 50 -59 142 -86 208 -61 31 11 364 242 461 319 169 134 261 267 364 528 33 81 92 220 132 308 64 141 74 168 77 230 3 65 -46 424 -118 860 -25 151 -37 304 -45 560 -7 220 -15 293 -80 686 -39 235 -73 541 -114 1024 -6 66 -24 347 -41 625 -66 1096 -109 1337 -352 1960 -202 517 -255 729 -313 1260 -53 483 -81 622 -217 1070 -62 208 -67 270 -50 650 25 576 -19 892 -179 1280 -119 286 -208 429 -374 596 -120 121 -227 198 -405 289 -137 70 -209 93 -508 166 -458 111 -506 129 -819 301 -114 64 -266 146 -338 183 -312 162 -477 313 -521 477 -30 113 -44 560 -24 743 7 62 29 146 70 270 32 99 68 212 79 251 12 40 27 76 34 82 6 5 31 13 54 17 117 19 197 145 263 415 55 225 65 462 22 519 -32 44 -65 57 -109 45 -21 -6 -46 -14 -55 -18 -15 -7 -16 11 -11 251 6 283 -2 398 -43 603 -73 362 -206 596 -449 785 -213 166 -440 267 -660 294 -82 10 -317 13 -390 5z"/> </g></svg>
+
+            <!-- Silueta Humana Vectorial de respaldo si la imagen local no está en la misma carpeta -->
+            <svg id="body-svg-fallback" class="hidden h-full w-auto max-h-[510px] select-none pointer-events-none" viewBox="0 0 360 840" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="neutral-standing-body">
+                <path d="
+                  M 180,22
+                  C 196,22 208,34 210,54
+                  C 210,64 213,72 216,80
+                  C 218,89 216,97 213,103
+                  C 209,112 203,124 195,130
+                  C 202,137 207,147 211,158
+                  C 220,165 237,175 253,184
+                  C 266,192 272,203 273,218
+                  C 274,236 270,262 267,288
+                  C 264,312 260,337 260,358
+                  C 260,371 259,384 260,396
+                  C 262,416 264,435 264,458
+                  C 264,481 259,502 254,519
+                  C 253,534 254,548 251,564
+                  C 249,578 245,591 242,600
+                  C 240,606 236,605 234,597
+                  C 232,586 233,569 233,553
+                  C 233,542 235,529 235,515
+                  C 235,496 236,467 234,438
+                  C 233,408 230,379 228,355
+                  C 227,332 222,305 219,284
+                  C 217,270 214,259 209,253
+                  C 208,278 206,306 204,333
+                  C 202,351 202,368 203,385
+                  C 205,402 211,426 213,448
+                  C 215,469 215,494 213,521
+                  C 211,552 206,589 204,627
+                  C 201,655 200,683 201,704
+                  C 202,725 206,753 205,781
+                  C 204,805 198,829 196,846
+                  C 195,854 191,858 184,858
+                  C 178,858 174,852 173,841
+                  C 172,830 174,814 175,797
+                  C 175,773 173,748 172,725
+                  C 171,704 172,679 173,656
+                  C 174,638 174,621 173,604
+                  C 172,580 173,539 176,499
+                  C 178,471 180,454 180,448
+                  C 180,454 182,471 184,499
+                  C 187,539 188,580 187,604
+                  C 186,621 186,638 187,656
+                  C 188,679 189,704 188,725
+                  C 187,748 185,773 185,797
+                  C 186,814 188,830 187,841
+                  C 186,852 182,858 176,858
+                  C 169,858 165,854 164,846
+                  C 162,829 156,805 155,781
+                  C 154,753 158,725 159,704
+                  C 160,683 159,655 156,627
+                  C 154,589 149,552 147,521
+                  C 145,494 145,469 147,448
+                  C 149,426 155,402 157,385
+                  C 158,368 158,351 156,333
+                  C 154,306 152,278 151,253
+                  C 146,259 143,270 141,284
+                  C 138,305 133,332 132,355
+                  C 130,379 127,408 126,438
+                  C 124,467 125,496 125,515
+                  C 125,529 127,542 127,553
+                  C 127,569 128,586 126,597
+                  C 124,605 120,606 118,600
+                  C 115,591 111,578 109,564
+                  C 106,548 107,534 106,519
+                  C 101,502 96,481 96,458
+                  C 96,435 98,416 100,396
+                  C 101,384 100,371 100,358
+                  C 100,337 96,312 93,288
+                  C 90,262 86,236 87,218
+                  C 88,203 94,192 107,184
+                  C 123,175 140,165 149,158
+                  C 153,147 158,137 165,130
+                  C 157,124 151,112 147,103
+                  C 144,97 142,89 144,80
+                  C 147,72 150,64 150,54
+                  C 152,34 164,22 180,22 Z
+                "
+                fill="#CBD5E1"
+                stroke="#94A3B8"
+                stroke-width="1.6"
+                stroke-linejoin="round"
+                />
+              </g>
+            </svg>
+
+            <!-- Capa interactiva de gomets para dinámicas digitales o proyector -->
+            <div id="interactive-gomets" class="absolute inset-0 pointer-events-none"></div>
+
+          </div>
+
+          <!-- Indicador de zonas somáticas clave -->
+          <div id="zona2-footer-labels" class="w-full flex items-center justify-between pt-1.5 border-t border-slate-100 text-[9px] font-mono text-brand-grey font-brand-body">
+            <span>Mandíbula / Cabeza</span>
+            <span>Garganta / Pecho</span>
+            <span>Plexo / Estómago</span>
+            <span>Manos / Extremidades</span>
+          </div>
+
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- ZONA 3: REGULACIÓN COLECTIVA & POST-ITS (5 COLS AMPLIADA) -->
+        <!-- ========================================================= -->
+        <div id="zona-3" class="col-span-5 flex flex-col justify-between bg-slate-50/70 border border-slate-200 rounded-lg p-3.5 gap-3">
+          
+          <div class="flex-1 flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+              <span class="font-mono text-[11px] font-black text-brand-dark uppercase tracking-wider font-brand-title">
+                3. ACUERDOS &amp; REGULACIÓN METAHOTEL
+              </span>
+              <span class="text-[9px] font-mono text-brand-blue font-bold px-2 py-0.5 rounded bg-brand-light border border-brand-blue/20">Zona Post-its 76×76mm</span>
+            </div>
+
+            <!-- Área Cuadrante A: ¿Qué necesita el cuerpo hoy? (AMPLIADA) -->
+            <div class="flex-1 bg-white border border-slate-200 rounded-lg p-3 flex flex-col shadow-xs">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-brand-mintDark"></span>
+                  <span class="font-mono text-[10px] font-black text-brand-mintDark uppercase tracking-tight font-brand-title">
+                    A. ¿QUÉ NECESITA EL CUERPO HOY? (NECESIDADES SOMÁTICAS)
+                  </span>
+                </div>
+                <span class="text-[8.5px] text-slate-400 font-mono font-semibold">Recogimiento · Límites · Pausa · Recursos</span>
+              </div>
+              <p class="text-[10px] text-brand-grey mb-2 font-brand-body leading-snug">
+                Pega aquí las necesidades que emergen del mapa somático y de las cartas del <strong>EMO-KIT</strong>:
+              </p>
+              
+              <!-- Contenedor ampliado para múltiples post-its con marcas guía -->
+              <div class="flex-1 min-h-[145px] sm:min-h-[160px] w-full border-2 border-dashed border-slate-300 rounded-lg p-2.5 bg-slate-50/60 grid grid-cols-3 gap-2 items-stretch">
+                <div class="border border-dashed border-slate-300/80 rounded bg-white/70 flex flex-col items-center justify-center p-2 text-center text-slate-400">
+                  <span class="text-[10px] font-mono font-bold block">[ Post-it 1 ]</span>
+                  <span class="text-[8.5px] text-slate-400 leading-tight mt-0.5">Petición / Límite</span>
+                </div>
+                <div class="border border-dashed border-slate-300/80 rounded bg-white/70 flex flex-col items-center justify-center p-2 text-center text-slate-400">
+                  <span class="text-[10px] font-mono font-bold block">[ Post-it 2 ]</span>
+                  <span class="text-[8.5px] text-slate-400 leading-tight mt-0.5">Tiempo / Pausa</span>
+                </div>
+                <div class="border border-dashed border-slate-300/80 rounded bg-white/70 flex flex-col items-center justify-center p-2 text-center text-slate-400">
+                  <span class="text-[10px] font-mono font-bold block">[ Post-it 3 ]</span>
+                  <span class="text-[8.5px] text-slate-400 leading-tight mt-0.5">Apoyo / Escucha</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Área Cuadrante B: Compromisos y Micro-acuerdos (AMPLIADA) -->
+            <div class="flex-1 bg-white border border-slate-200 rounded-lg p-3 flex flex-col shadow-xs">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-brand-blue"></span>
+                  <span class="font-mono text-[10px] font-black text-brand-blue uppercase tracking-tight font-brand-title">
+                    B. COMPROMISOS ACORDADOS &amp; MICRO-ACUERDOS DE ACCIÓN
+                  </span>
+                </div>
+                <span class="text-[8.5px] text-brand-blue font-mono font-semibold">Pactos Operativos del Sprint</span>
+              </div>
+              <p class="text-[10px] text-brand-grey mb-2 font-brand-body leading-snug">
+                Pactos explícitos que el equipo asume para cuidar la seguridad psicológica, la comunicación y el foco:
+              </p>
+              
+              <!-- Contenedor ampliado para compromisos con espacio holgado -->
+              <div class="flex-1 min-h-[145px] sm:min-h-[160px] w-full border-2 border-dashed border-slate-300 rounded-lg p-2.5 bg-slate-50/60 grid grid-cols-3 gap-2 items-stretch">
+                <div class="border border-dashed border-brand-blue/30 rounded bg-white/90 flex flex-col items-center justify-center p-2 text-center text-slate-400">
+                  <span class="text-[10px] font-mono font-bold text-brand-blue block">[ Compromiso 1 ]</span>
+                  <span class="text-[8.5px] text-slate-500 leading-tight mt-0.5">Regla de comunicación</span>
+                </div>
+                <div class="border border-dashed border-brand-blue/30 rounded bg-white/90 flex flex-col items-center justify-center p-2 text-center text-slate-400">
+                  <span class="text-[10px] font-mono font-bold text-brand-blue block">[ Compromiso 2 ]</span>
+                  <span class="text-[8.5px] text-slate-500 leading-tight mt-0.5">Gestión de interrupciones</span>
+                </div>
+                <div class="border border-dashed border-brand-blue/30 rounded bg-white/90 flex flex-col items-center justify-center p-2 text-center text-slate-400">
+                  <span class="text-[10px] font-mono font-bold text-brand-blue block">[ Compromiso 3 ]</span>
+                  <span class="text-[8.5px] text-slate-500 leading-tight mt-0.5">Espacio de feedback</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Área Cuadrante C: Protocolo STOP de Reunión (COMPACTO Y FUNCIONAL) -->
+            <div class="bg-white border border-slate-200 rounded-lg p-2.5 shadow-xs">
+              <div class="flex items-center justify-between mb-1.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span class="font-mono text-[9.5px] font-black text-amber-700 uppercase tracking-tight font-brand-title">
+                    C. PROTOCOLO STOP DE REUNIÓN
+                  </span>
+                </div>
+                <span class="text-[8px] bg-amber-100 text-amber-900 font-extrabold px-1.5 py-0.5 rounded font-mono">MICRO-PAUSA 60 SEG</span>
+              </div>
+              <div class="grid grid-cols-4 gap-1.5 text-center font-mono text-[8.5px]">
+                <div class="bg-slate-50 p-1 rounded border border-slate-200">
+                  <strong class="block text-brand-dark font-black font-brand-title text-[10px]">S</strong>
+                  <span class="text-brand-grey font-brand-body text-[8.5px]">Paro motor</span>
+                </div>
+                <div class="bg-slate-50 p-1 rounded border border-slate-200">
+                  <strong class="block text-brand-dark font-black font-brand-title text-[10px]">T</strong>
+                  <span class="text-brand-grey font-brand-body text-[8.5px]">Respiro hondo</span>
+                </div>
+                <div class="bg-slate-50 p-1 rounded border border-slate-200">
+                  <strong class="block text-brand-dark font-black font-brand-title text-[10px]">O</strong>
+                  <span class="text-brand-grey font-brand-body text-[8.5px]">Observo cuerpo</span>
+                </div>
+                <div class="bg-slate-50 p-1 rounded border border-slate-200">
+                  <strong class="block text-brand-dark font-black font-brand-title text-[10px]">P</strong>
+                  <span class="text-brand-grey font-brand-body text-[8.5px]">Prosigo consciente</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Pie de Columna 3 -->
+          <div class="pt-2 border-t border-slate-200 text-[9px] font-mono text-brand-grey flex items-center justify-between">
+            <span class="font-brand-body">Seguridad Psicológica &amp; Clima de Equipo</span>
+            <span class="font-bold text-brand-blue font-brand-title">Metahotel Coaching</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- PIE DE PÁGINA DEL PLIEGO IMPRESO -->
+      <div id="pie-pliego" class="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] font-mono text-brand-grey shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-brand-dark font-brand-title">METAHOTEL</span>
+          <span>•</span>
+          <span class="font-brand-body">Herramienta de Facilitación Presencial EMO-KIT</span>
+          
+        </div>
+        <div class="flex items-center gap-2.5 font-semibold">
+          <span class="text-brand-dark font-brand-title">Talento &amp; Liderazgo</span>
+          <span>•</span>
+          <a href="https://www.metahotel.es" class="text-brand-blue font-bold hover:underline font-brand-title">www.metahotel.es</a>
+        </div>
+      </div>
+
+    </div>
+
+    </div><!-- /fit-stage -->
+
+  </main>
+
+  <script>
+    let activeGometColor = '#F43F5E';
+
+    function setGometColor(color) {
+      activeGometColor = color;
+    }
+
+    function handleSilhouetteClick(event) {
+      const el = event.currentTarget;
+      // rect.width/height son el tamaño VISUAL (ya con el zoom de
+      // ajuste-a-pantalla aplicado), mientras que las coordenadas del
+      // gomet se colocan en el sistema LOCAL (sin escalar) del elemento,
+      // porque #interactive-gomets vive dentro de #fit-stage, que tiene un
+      // transform:scale(). Si se usara directamente clientX/clientY el
+      // punto pintado se desplaza cuanto mayor es el zoom aplicado. Para
+      // que el gomet quede exactamente bajo el puntero en cualquier
+      // resolucion/zoom, se calcula primero la posicion relativa (0 a 1)
+      // dentro del tamaño visual y se traslada despues al tamaño local
+      // (offsetWidth/offsetHeight) del propio elemento.
+      const rect = el.getBoundingClientRect();
+      const fracX = (event.clientX - rect.left) / rect.width;
+      const fracY = (event.clientY - rect.top) / rect.height;
+      const x = fracX * el.offsetWidth;
+      const y = fracY * el.offsetHeight;
+
+      const layer = document.getElementById('interactive-gomets');
+      const dot = document.createElement('div');
+      dot.className = 'gomet-dot absolute w-3.5 h-3.5 rounded-full shadow border border-white/90 pointer-events-none';
+      dot.style.left = `${x}px`;
+      dot.style.top = `${y}px`;
+      dot.style.backgroundColor = activeGometColor;
+
+      layer.appendChild(dot);
+    }
+
+    function clearGomets() {
+      document.getElementById('interactive-gomets').innerHTML = '';
+    }
+
+    function uploadCustomLogo(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const result = e.target.result;
+          const logoImg = document.getElementById('mural-logo-image');
+          if (logoImg) {
+            logoImg.src = result;
+            logoImg.classList.remove('hidden');
+            const vec = document.getElementById('mural-logo-vector');
+            if (vec) vec.classList.add('hidden');
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    /* Reescala el mural entero (#fit-stage) para que quepa siempre dentro
+       de la ventana visible, sin recortes ni scroll, en cualquier pantalla
+       o proyector. Solo afecta a la vista en pantalla; la impresion usa
+       sus propias reglas @media print y no se ve afectada. */
+    function fitMuralToScreen() {
+      const stage = document.getElementById('fit-stage');
+      const wrapper = document.querySelector('.sheet-wrapper');
+      const header = document.querySelector('header');
+      if (!stage || !wrapper) return;
+
+      // Altura disponible = ventana - cabecera de herramientas (no se imprime)
+      const headerH = header ? header.getBoundingClientRect().height : 0;
+      wrapper.style.height = (window.innerHeight - headerH) + 'px';
+
+      stage.style.transform = 'none';
+
+      const stageRect = stage.getBoundingClientRect();
+      const wrapperStyle = getComputedStyle(wrapper);
+      const availW = wrapper.clientWidth - parseFloat(wrapperStyle.paddingLeft) - parseFloat(wrapperStyle.paddingRight);
+      const availH = wrapper.clientHeight - parseFloat(wrapperStyle.paddingTop) - parseFloat(wrapperStyle.paddingBottom);
+
+      if (stageRect.width === 0 || stageRect.height === 0) return;
+
+      const scale = Math.min(availW / stageRect.width, availH / stageRect.height);
+      stage.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('load', fitMuralToScreen);
+    window.addEventListener('resize', fitMuralToScreen);
+    // Reintento tras la carga de fuentes/imagenes por si el tamaño natural cambia
+    setTimeout(fitMuralToScreen, 300);
+    setTimeout(fitMuralToScreen, 1000);
+  </script>
+
+</body>
+</html>
