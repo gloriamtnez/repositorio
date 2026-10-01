@@ -216,8 +216,9 @@ async function setupFirebase() {
 
   return {
     async submit(words) {
-      await storeSdk.setDoc(storeSdk.doc(collectionRef, credential.user.uid), {
+      await storeSdk.addDoc(collectionRef, {
         words,
+        authorId: credential.user.uid,
         createdAt: storeSdk.serverTimestamp()
       });
     }
@@ -272,3 +273,4 @@ $("#copy-link").addEventListener("click", async () => {
 
 window.addEventListener("resize", () => { if (!muralView.hidden) renderMural(); });
 initialize();
+
