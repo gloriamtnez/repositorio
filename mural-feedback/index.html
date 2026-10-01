@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4bf2a" />
+    <meta name="description" content="Mural colectivo de palabras sobre liderazgo y empoderamiento." />
+    <title>Lo que nos llevamos hoy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand-lockup">
+        <img class="brand-logo" src="assets/logo-principal.svg" alt="" data-optional-image />
+        <div>
+          <p class="eyebrow">Liderazgo y empoderamiento</p>
+          <p class="brand-name">Mural colectivo</p>
+        </div>
+      </div>
+      <button id="view-toggle" class="text-button" type="button" aria-label="Cambiar de vista">
+        Ver mural <span aria-hidden="true">↗</span>
+      </button>
+    </header>
+
+    <main>
+      <section id="form-view" class="form-view" aria-labelledby="question-title">
+        <div class="form-copy">
+          <p class="step-label">Una pausa para integrar</p>
+          <h1 id="question-title">¿Qué palabra refleja lo que te llevas hoy?</h1>
+          <p class="intro">Comparte hasta tres palabras. Tu aportación se sumará al mural colectivo de forma anónima.</p>
+
+          <form id="word-form" novalidate>
+            <label for="word-input">Escribe una palabra</label>
+            <div class="word-entry">
+              <input id="word-input" name="word" type="text" maxlength="24" autocomplete="off" enterkeyhint="done" placeholder="Ej. confianza" />
+              <button id="add-word" class="add-button" type="submit">Añadir</button>
+            </div>
+            <div class="helper-row">
+              <span id="word-counter">0 de 3 palabras</span>
+              <span>Máximo 24 caracteres</span>
+            </div>
+            <div id="selected-words" class="selected-words" aria-live="polite"></div>
+            <p id="form-error" class="form-error" role="alert"></p>
+            <button id="send-words" class="primary-button" type="button" disabled>
+              Compartir en el mural
+              <span aria-hidden="true">→</span>
+            </button>
+          </form>
+        </div>
+
+        <aside class="mini-flower" aria-hidden="true">
+          <svg viewBox="0 0 420 520" role="img">
+            <g class="flower-lines" fill="none" stroke="currentColor" stroke-width="4">
+              <path d="M210 462 C205 350 218 280 210 212" />
+              <path d="M208 355 C160 320 129 326 101 347 C145 367 179 368 208 355Z" />
+              <path d="M212 311 C257 276 291 282 319 307 C276 326 240 327 212 311Z" />
+              <ellipse cx="210" cy="173" rx="46" ry="75" transform="rotate(0 210 173)" />
+              <ellipse cx="210" cy="173" rx="46" ry="75" transform="rotate(60 210 173)" />
+              <ellipse cx="210" cy="173" rx="46" ry="75" transform="rotate(120 210 173)" />
+              <circle cx="210" cy="173" r="37" />
+            </g>
+          </svg>
+        </aside>
+      </section>
+
+      <section id="mural-view" class="mural-view" aria-labelledby="mural-title" hidden>
+        <div class="mural-heading">
+          <div>
+            <p class="step-label">Esto es lo que florece</p>
+            <h2 id="mural-title">Lo que nos llevamos hoy</h2>
+          </div>
+          <div class="live-status"><span></span><strong id="response-count">0</strong>&nbsp;aportaciones</div>
+        </div>
+
+        <div id="connection-notice" class="connection-notice" hidden></div>
+
+        <div id="flower-stage" class="flower-stage" aria-label="Mural visual de palabras">
+          <img class="flower-logo" src="assets/flor-borde-amarillo.svg" alt="" data-optional-image />
+          <svg class="flower-fallback" viewBox="0 0 900 650" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="5">
+              <path d="M450 613 C443 495 461 405 450 296" />
+              <path d="M447 500 C365 446 310 456 260 492 C336 521 398 520 447 500Z" />
+              <path d="M454 447 C533 391 593 405 639 446 C563 476 502 475 454 447Z" />
+              <ellipse cx="450" cy="244" rx="76" ry="119" />
+              <ellipse cx="450" cy="244" rx="76" ry="119" transform="rotate(60 450 244)" />
+              <ellipse cx="450" cy="244" rx="76" ry="119" transform="rotate(120 450 244)" />
+              <circle cx="450" cy="244" r="58" />
+            </g>
+          </svg>
+          <div id="word-cloud" class="word-cloud"></div>
+          <div id="empty-state" class="empty-state">
+            <span aria-hidden="true">✦</span>
+            <p>Las primeras palabras<br />harán florecer este mural.</p>
+          </div>
+        </div>
+
+        <div class="mural-actions">
+          <button id="back-to-form" class="secondary-button" type="button">Añadir palabras</button>
+          <button id="copy-link" class="text-button" type="button">Copiar enlace del mural</button>
+        </div>
+        <ol id="accessible-word-list" class="sr-only" aria-label="Palabras ordenadas por frecuencia"></ol>
+      </section>
+
+      <section id="thank-you" class="thank-you" hidden aria-live="polite">
+        <div class="thank-you-card">
+          <span class="success-mark" aria-hidden="true">✓</span>
+          <p class="step-label">Gracias por compartir</p>
+          <h2>Tu palabra ya forma parte del mural.</h2>
+          <button id="see-mural" class="primary-button" type="button">Ver el resultado <span aria-hidden="true">→</span></button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Una conversación sobre liderazgo que sigue creciendo.</p>
+      <img class="footer-logo" src="assets/logo-secundario.svg" alt="" data-optional-image />
+    </footer>
+
+    <script src="firebase-config.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
