@@ -2,12 +2,15 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /sessions/{sessionId}/responses/{userId} {
+    match /sessions/{sessionId}/responses/{responseId} {
       allow read: if true;
 
-      allow create, update: if request.auth != null
-        && request.auth.uid == userId
-        && request.resource.data.keys().hasOnly(['words', 'createdAt'])
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['words', 'authorId', 'createdAt'])
+        && request.resource.data.keys().hasAll(['words', 'authorId', 'createdAt'])
+        && request.resource.data.authorId is string
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.createdAt == request.time
         && request.resource.data.words is list
         && request.resource.data.words.size() >= 1
         && request.resource.data.words.size() <= 3
@@ -25,7 +28,7 @@ service cloud.firestore {
           && request.resource.data.words[2].size() <= 24
         ));
 
-      allow delete: if false;
+      allow update, delete: if false;
     }
   }
 }
