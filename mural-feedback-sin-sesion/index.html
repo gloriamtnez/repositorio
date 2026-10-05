@@ -17,13 +17,14 @@
     .form-view{grid-template-columns:minmax(0,760px)}.form-copy{max-width:760px}
     .brand-flower-mural{width:min(88%,780px);transform:translate(-50%,-50%) scale(1.08);opacity:.13;filter:url(#thin-logo) saturate(.55) brightness(1.08)}
     .word-bloom{border-color:rgba(15,39,68,.10);box-shadow:0 7px 22px rgba(15,39,68,.09)}
-    .word-cloud{inset:2%;display:flex;flex-wrap:wrap;align-content:center;align-items:center;justify-content:center;gap:clamp(8px,1.25vw,16px);padding:clamp(18px,3vw,38px)}
-    .word-bloom{position:relative;left:auto!important;top:auto!important;flex:0 0 auto;max-width:min(100%,280px);transform:none;animation-name:bloom-in-flow;white-space:nowrap}
-    .word-cloud[data-density="medium"]{gap:9px;padding:22px}.word-cloud[data-density="high"]{gap:6px;padding:14px}
-    .word-cloud[data-density="high"] .word-bloom{padding:6px 9px}
-    @keyframes bloom-in-flow{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
+    .word-cloud{inset:3% 2%;display:block;padding:0}
+    .word-bloom{position:absolute;left:0;top:0;visibility:hidden;max-width:none;padding:3px 6px;border:0;background:transparent;box-shadow:none;backdrop-filter:none;font-weight:700;line-height:1.04;white-space:nowrap;transform:translate(-50%,-50%);animation-name:bloom-in-cloud;text-shadow:0 1px 0 #fff,0 0 7px rgba(255,255,255,.96),0 0 14px rgba(255,255,255,.82)}
+    .word-bloom .icon{font-size:.48em;opacity:.72}
+    .word-bloom[data-tone="0"]{color:#0f2744}.word-bloom[data-tone="1"]{color:#476b78}.word-bloom[data-tone="2"]{color:#6d587d}.word-bloom[data-tone="3"]{color:#9b7200}.word-bloom[data-tone="4"]{color:#334e68}
+    .word-bloom[data-rank="1"]{color:#0f2744;font-weight:800}
+    @keyframes bloom-in-cloud{from{opacity:0;transform:translate(-50%,-42%) scale(.86)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
     .word-bloom[data-rank="1"]{border-color:rgba(233,200,0,.48)}.filter-defs{position:absolute;width:0;height:0;overflow:hidden}
-    @media(max-width:820px){.brand-flower-mural{width:min(134%,710px);top:44%;opacity:.11}.word-cloud{inset:1%;gap:8px;padding:12px}.word-bloom{max-width:100%}}
+    @media(max-width:820px){.brand-flower-mural{width:min(134%,710px);top:44%;opacity:.11}.word-cloud{inset:2% 1%}.word-bloom{max-width:96%}}
   </style>
 </head>
 <body>
@@ -46,7 +47,7 @@
       </div>
     </section>
     <section id="mural-view" class="mural-view" aria-labelledby="mural-title" hidden>
-      <div class="mural-heading"><div><p class="step-label">Esto es lo que florece</p><h2 id="mural-title">Lo que nos llevamos hoy</h2></div><div class="live-status"><span></span><strong id="response-count">0</strong>&nbsp;aportaciones</div></div>
+      <div class="mural-heading"><div><p class="step-label">Esto es lo que florece</p><h2 id="mural-title">Lo que nos llevamos hoy</h2></div><div class="live-status"><span></span><strong id="response-count">0</strong>&nbsp;aportaciones&nbsp;·&nbsp;<strong id="word-total">0</strong>&nbsp;palabras&nbsp;·&nbsp;<strong id="unique-count">0</strong>&nbsp;diferentes</div></div>
       <div id="connection-notice" class="connection-notice" hidden></div>
       <div id="flower-stage" class="flower-stage" aria-label="Mural visual de palabras sobre el símbolo de Gloria Martínez"><span class="brand-flower-crop brand-flower-mural"><img src="../mural-feedback/assets/logo-gm.svg" alt=""></span><div id="word-cloud" class="word-cloud"></div><div id="empty-state" class="empty-state"><span aria-hidden="true">✦</span><p>Las primeras palabras<br>harán florecer este mural.</p></div></div>
       <div class="mural-actions"><button id="back-to-form" class="secondary-button" type="button">Añadir palabras</button><button id="copy-link" class="text-button" type="button">Copiar enlace del mural</button></div><ol id="accessible-word-list" class="sr-only" aria-label="Palabras ordenadas por frecuencia"></ol>
@@ -55,6 +56,6 @@
   </main>
   <footer><p>Una conversación sobre liderazgo que sigue creciendo.</p><a class="footer-web" href="https://institutoliderazgopositivo.com" target="_blank" rel="noopener">institutoliderazgopositivo.com</a></footer>
   <script src="../mural-feedback-publicar/firebase-config.js"></script>
-  <script type="module" src="../mural-feedback-ilp-v2/direct-send.js?v=6"></script>
+  <script type="module" src="../mural-feedback-ilp-v2/direct-send.js?v=7"></script>
 </body>
 </html>
