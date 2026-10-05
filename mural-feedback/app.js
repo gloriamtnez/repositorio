@@ -144,17 +144,21 @@ function renderMural() {
   $("#empty-state").hidden = words.length > 0;
   $("#response-count").textContent = responses.length;
   const max = Math.max(...words.map((word) => word.count), 1);
+  const mobile = matchMedia("(max-width: 820px)").matches;
+  const wordsPerRow = mobile ? 2 : 5;
+  const estimatedRows = Math.ceil(words.length / wordsPerRow);
+  const minimumHeight = mobile ? 720 : 560;
+  const rowHeight = mobile ? 62 : 70;
+  $("#flower-stage").style.height = `${Math.max(minimumHeight, 180 + estimatedRows * rowHeight)}px`;
+  cloud.dataset.density = words.length > 40 ? "high" : words.length > 24 ? "medium" : "normal";
 
-  words.slice(0, 30).forEach((item, index) => {
+  words.forEach((item, index) => {
     const node = document.createElement("span");
-    const pos = positionFor(item, index, Math.min(words.length, 30));
     const scale = item.count / max;
     node.className = "word-bloom";
     node.dataset.rank = index === 0 ? "1" : "0";
-    node.style.left = `${pos.x}%`;
-    node.style.top = `${pos.y}%`;
     node.style.fontSize = `${0.82 + scale * 1.28}rem`;
-    node.style.animationDelay = `${Math.min(index * 35, 500)}ms`;
+    node.style.animationDelay = `${Math.min(index * 25, 450)}ms`;
     node.title = `${item.count} ${item.count === 1 ? "mención" : "menciones"}`;
     node.innerHTML = `<span class="icon" aria-hidden="true">${iconFor(item.label)}</span><span></span>`;
     node.lastElementChild.textContent = item.label;
