@@ -124,46 +124,119 @@ function seededNumber(text) {
   return (hash >>> 0) / 4294967295;
 }
 
-function positionFor(item, index, total) {
-  const mobile = matchMedia("(max-width: 820px)").matches;
-  const seed = seededNumber(item.key);
-  const angle = (index / Math.max(total, 1)) * Math.PI * 2 - Math.PI / 2 + (seed - 0.5) * 0.46;
-  const ring = index < 8 ? 0 : index < 18 ? 1 : 2;
-  const radiusX = mobile ? 29 + ring * 6 : 24 + ring * 10;
-  const radiusY = mobile ? 25 + ring * 9 : 22 + ring * 9;
-  return {
-    x: 50 + Math.cos(angle) * radiusX,
-    y: (mobile ? 41 : 39) + Math.sin(angle) * radiusY
-  };
+function rectanglesOverlap(a, b, padding = 7) {
+  return !(
+    a.right + padding <= b.left ||
+    a.left >= b.right + padding ||
+    a.bottom + padding <= b.top ||
+    a.top >= b.bottom + padding
+  );
+}
+
+function layoutWordCloud(cloud, nodes) {
+  const width = cloud.clientWidth;
+  const height = cloud.clientHeight;
+  if (!width || !height) return;
+
+  const placed = [];
+  const centerX = width / 2;
+  const centerY = height / 2;
+
+  nodes.forEach((node, index) => {
+    const nodeWidth = node.offsetWidth;
+    const nodeHeight = node.offsetHeight;
+    const seed = seededNumber(node.dataset.key || String(index));
+    let position = null;
+
+    for (let step = 0; step < 2600; step += 1) {
+      const radius = index === 0 ? 0 : 4.25 * Math.sqrt(step);
+      const angle = step * 0.49 + seed * Math.PI * 2;
+      const x = centerX + Math.cos(angle) * radius * 1.22;
+      const y = centerY + Math.sin(angle) * radius * 0.78;
+      const candidate = {
+        left: x - nodeWidth / 2,
+        right: x + nodeWidth / 2,
+        top: y - nodeHeight / 2,
+        bottom: y + nodeHeight / 2
+      };
+
+      const inside = candidate.left >= 5
+        && candidate.right <= width - 5
+        && candidate.top >= 5
+        && candidate.bottom <= height - 5;
+
+      if (inside && !placed.some((item) => rectanglesOverlap(candidate, item))) {
+        position = { x, y, ...candidate };
+        break;
+      }
+    }
+
+    if (!position) {
+      const stepX = Math.max(82, nodeWidth + 12);
+      const stepY = Math.max(42, nodeHeight + 12);
+      outer:
+      for (let y = stepY / 2 + 5; y < height - stepY / 2; y += stepY) {
+        for (let x = stepX / 2 + 5; x < width - stepX / 2; x += stepX) {
+          const candidate = {
+            left: x - nodeWidth / 2,
+            right: x + nodeWidth / 2,
+            top: y - nodeHeight / 2,
+            bottom: y + nodeHeight / 2
+          };
+          if (!placed.some((item) => rectanglesOverlap(candidate, item, 5))) {
+            position = { x, y, ...candidate };
+            break outer;
+          }
+        }
+      }
+    }
+
+    if (position) {
+      node.style.left = `${position.x}px`;
+      node.style.top = `${position.y}px`;
+      placed.push(position);
+    }
+    node.style.visibility = "visible";
+  });
 }
 
 function renderMural() {
   const words = aggregateWords(responses);
   const cloud = $("#word-cloud");
+  const stage = $("#flower-stage");
   cloud.replaceChildren();
   $("#empty-state").hidden = words.length > 0;
   $("#response-count").textContent = responses.length;
   const max = Math.max(...words.map((word) => word.count), 1);
+  const min = Math.min(...words.map((word) => word.count), max);
   const mobile = matchMedia("(max-width: 820px)").matches;
-  const wordsPerRow = mobile ? 2 : 5;
-  const estimatedRows = Math.ceil(words.length / wordsPerRow);
-  const minimumHeight = mobile ? 720 : 560;
-  const rowHeight = mobile ? 62 : 70;
-  $("#flower-stage").style.height = `${Math.max(minimumHeight, 180 + estimatedRows * rowHeight)}px`;
-  cloud.dataset.density = words.length > 40 ? "high" : words.length > 24 ? "medium" : "normal";
+  const extraWords = Math.max(0, words.length - (mobile ? 14 : 24));
+  const stageHeight = (mobile ? 820 : 620) + extraWords * (mobile ? 34 : 19);
+  stage.style.height = `${stageHeight}px`;
+  cloud.dataset.density = words.length > 45 ? "high" : words.length > 28 ? "medium" : "normal";
 
-  words.forEach((item, index) => {
+  const nodes = words.map((item, index) => {
     const node = document.createElement("span");
-    const scale = item.count / max;
+    const range = Math.max(max - min, 1);
+    const frequency = (item.count - min) / range;
+    const emphasis = max === min ? 0.35 : Math.sqrt(frequency);
+    const minimumSize = mobile ? 16 : 18;
+    const maximumSize = mobile ? 43 : 58;
+
     node.className = "word-bloom";
     node.dataset.rank = index === 0 ? "1" : "0";
-    node.style.fontSize = `${0.82 + scale * 1.28}rem`;
-    node.style.animationDelay = `${Math.min(index * 25, 450)}ms`;
+    node.dataset.tone = String(index % 5);
+    node.dataset.key = item.key;
+    node.style.fontSize = `${minimumSize + emphasis * (maximumSize - minimumSize)}px`;
+    node.style.animationDelay = `${Math.min(index * 22, 420)}ms`;
     node.title = `${item.count} ${item.count === 1 ? "mención" : "menciones"}`;
     node.innerHTML = `<span class="icon" aria-hidden="true">${iconFor(item.label)}</span><span></span>`;
     node.lastElementChild.textContent = item.label;
     cloud.append(node);
+    return node;
   });
+
+  requestAnimationFrame(() => layoutWordCloud(cloud, nodes));
 
   const list = $("#accessible-word-list");
   list.replaceChildren(...words.map((item) => {
