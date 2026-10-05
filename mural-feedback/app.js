@@ -207,6 +207,9 @@ function renderMural() {
   cloud.replaceChildren();
   $("#empty-state").hidden = words.length > 0;
   $("#response-count").textContent = responses.length;
+  const totalWords = responses.reduce((total, response) => total + (response.words?.length || 0), 0);
+  $("#word-total")?.replaceChildren(document.createTextNode(String(totalWords)));
+  $("#unique-count")?.replaceChildren(document.createTextNode(String(words.length)));
   const max = Math.max(...words.map((word) => word.count), 1);
   const min = Math.min(...words.map((word) => word.count), max);
   const mobile = matchMedia("(max-width: 820px)").matches;
