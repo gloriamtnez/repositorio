@@ -1,4 +1,4 @@
-await import("../mural-feedback/app.js?v=6");
+await import("../mural-feedback/app.js?v=7");
 
 const visibleInputs = [...document.querySelectorAll(".visible-word")];
 const legacyInput = document.querySelector("#word-input");
