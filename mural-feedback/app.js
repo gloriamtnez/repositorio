@@ -239,8 +239,6 @@ function renderMural() {
     return node;
   });
 
-  requestAnimationFrame(() => layoutWordCloud(cloud, nodes));
-
   const list = $("#accessible-word-list");
   list.replaceChildren(...words.map((item) => {
     const li = document.createElement("li");
